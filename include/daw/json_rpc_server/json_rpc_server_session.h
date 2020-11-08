@@ -26,6 +26,8 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
  */
 
 namespace daw::json_rpc_server {
+	template<typename...Args>
+	void handle_request( Args const &... ) {}
 	// Handles an HTTP server connection.
 	// This uses the Curiously Recurring Template Pattern so that
 	// the same code works with both SSL streams and regular sockets.

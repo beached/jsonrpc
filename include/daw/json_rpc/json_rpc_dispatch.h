@@ -18,20 +18,29 @@ namespace daw::json_rpc {
 	class json_rpc_dispatch {
 		std::unordered_map<std::string, json_rpc::callback_type> m_handlers{ };
 
+		template<std::size_t Base, typename... Args>
+		static inline std::pair<std::string, json_rpc::callback_type>
+		to_node( std::tuple<Args...> &&tp_args ) {
+			return { std::string( std::get<Base + 0>( std::move( tp_args ) ) ),
+			         std::get<( Base + 1 )>( std::move( tp_args ) ).callback( ) };
+		}
+
 		template<typename... Args, std::size_t... Is>
 		inline explicit json_rpc_dispatch( std::tuple<Args...> &&tp_args,
 		                                   std::index_sequence<Is...> )
-		  : m_handlers{ std::pair<std::string, json_rpc::callback_type>(
-		      std::string( std::get<Is * 2>( std::move( tp_args ) ) ),
-		      std::get<( Is * 2 + 1 )>( std::move( tp_args ) ) )... } {
+		  : m_handlers{ { to_node<Is * 2>( std::move( tp_args ) )... } } {
+			static_assert( sizeof...( Args ) % 2 == 0,
+			               "Must supply name/handler pairs" );
 			static_assert(
-			  ( std::is_constructible_v<std::string,
-			                            std::get<Is * 2>( std::move( tp_args ) )> and
+			  ( std::is_constructible_v<std::string, decltype( std::get<( Is * 2 )>(
+			                                           std::move( tp_args ) ) )> and
 			    ... ),
 			  "Even arguments must be able to used to construct a string" );
 			static_assert(
-			  ( std::is_constructible_v<std::string, std::get<Is * 2 + 1>(
-			                                           std::move( tp_args ) )> and
+			  ( std::is_constructible_v<json_rpc::callback_type,
+			                            decltype( std::get<( Is * 2 ) + 1>(
+			                                        std::move( tp_args ) )
+			                                        .callback( ) )> and
 			    ... ),
 			  "Odd arguments must be able to used to construct a callback_type" );
 		}

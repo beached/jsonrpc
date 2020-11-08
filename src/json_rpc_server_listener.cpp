@@ -43,7 +43,7 @@ namespace daw::json_rpc_server {
 			return;
 		}
 		std::make_shared<json_rpc_server_session_detect>( std::move( socket ),
-		                                                  m_io_ctx, m_doc_root )
+		                                                  *m_ssl_ctx, m_doc_root )
 		  ->run( );
 		do_accept( );
 	}

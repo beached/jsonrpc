@@ -25,14 +25,8 @@ namespace daw::json_rpc {
 	callback_type make_callback( Callback &&c ) {
 		callback_type result =
 		  [c = std::forward<Callback>( c )]( daw::json::json_value_state jv,
+		                                     std::optional<std::string_view> id,
 		                                     char *out_it ) -> char * {
-			auto const id = [&jv]( ) -> std::optional<std::string_view> {
-				auto const id_idx = jv.index_of( "id" );
-				if( id_idx < jv.size( ) ) {
-					return jv[id_idx].get_string_view( );
-				}
-				return std::nullopt;
-			}( );
 			auto param_idx = jv.index_of( "params" );
 			if constexpr( sizeof...( Parameters ) > 0 ) {
 				if( param_idx >= jv.size( ) ) {
