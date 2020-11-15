@@ -30,7 +30,7 @@ namespace daw::json_rpc_server {
 		                          boost::asio::ip::tcp::endpoint endpoint,
 		                          std::shared_ptr<std::string> const &doc_root );
 
-		void run( ) {
+		inline void run( ) {
 			do_accept( );
 		}
 
