@@ -20,10 +20,10 @@ struct User {
 	std::string password;
 };
 
-using namespace ctre::literals;
+static constexpr std::string_view email_regex =
+  R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex";
 
-static constexpr auto email_matcher =
-  R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex"_ctre;
+static constexpr auto email_matcher = ctre::match<email_regex>;
 
 constexpr bool validate_email( std::string_view addr ) {
 	return email_matcher.match( addr );
