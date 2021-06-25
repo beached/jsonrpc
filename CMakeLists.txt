@@ -13,9 +13,13 @@ find_package(Threads REQUIRED)
 
 add_subdirectory(extern/)
 
-add_library(${PROJECT_NAME} include/daw/json_rpc/json_rpc_dispatch.h include/daw/json_rpc/json_rpc_params.h include/daw/json_rpc/json_rpc_request.h include/daw/json_rpc/json_rpc_response.h include/daw/json_rpc/json_rpc_error.h include/daw/json_rpc/json_rpc_request_handler.h src/json_rpc/json_rpc_dispatch.cpp src/json_rpc_server/json_rpc_server_listener.cpp include/daw/json_rpc_server/json_rpc_server_listener.h src/json_rpc_server/json_rpc_server_session_detect.cpp include/daw/json_rpc_server/json_rpc_server_session_detect.h src/json_rpc_server/json_rpc_server_session_ssl.cpp include/daw/json_rpc_server/json_rpc_server_session_ssl.h src/json_rpc_server/json_rpc_server_session.cpp include/daw/json_rpc_server/json_rpc_server_session.h include/daw/json_rpc_server/json_rpc_server_error.h include/daw/json_rpc_server/json_rpc_server_session_plain.h src/json_rpc_server/json_rpc_server_session_plain.cpp)
+#add_library(${PROJECT_NAME} include/daw/json_rpc/json_rpc_dispatch.h include/daw/json_rpc/json_rpc_params.h include/daw/json_rpc/json_rpc_request.h include/daw/json_rpc/json_rpc_response.h include/daw/json_rpc/json_rpc_error.h include/daw/json_rpc/json_rpc_request_handler.h src/json_rpc/json_rpc_dispatch.cpp src/json_rpc_server/json_rpc_server_listener.cpp include/daw/json_rpc_server/json_rpc_server_listener.h src/json_rpc_server/json_rpc_server_session_detect.cpp include/daw/json_rpc_server/json_rpc_server_session_detect.h src/json_rpc_server/json_rpc_server_session_ssl.cpp include/daw/json_rpc_server/json_rpc_server_session_ssl.h src/json_rpc_server/json_rpc_server_session.cpp include/daw/json_rpc_server/json_rpc_server_session.h include/daw/json_rpc_server/json_rpc_server_error.h include/daw/json_rpc_server/json_rpc_server_session_plain.h src/json_rpc_server/json_rpc_server_session_plain.cpp)
+add_library(${PROJECT_NAME}
+        src/json_rpc/json_rpc_dispatch.cpp
+        src/json_rpc_server.cpp
+)
 
-target_link_libraries(${PROJECT_NAME} Boost::boost daw::json_link OpenSSL::SSL Threads::Threads)
+target_link_libraries(${PROJECT_NAME} httplib::httplib daw::json_link Threads::Threads)
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 #add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 

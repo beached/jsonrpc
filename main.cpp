@@ -1,40 +1,47 @@
+// Copyright (c) Darrell Wright
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+// Official repository: https://github.com/beached/jsonrpc
+//
+
+#include "daw/json_rpc_server.h"
+
 #include <iostream>
-
-#include "daw/json_rpc/json_rpc_dispatch.h"
-#include "daw/json_rpc_server/json_rpc_server_listener.h"
-
-#include <boost/asio.hpp>
 #include <string_view>
 
 int add( int a, int b ) {
 	return a + b;
 }
 
+struct Foo {
+	std::string bar;
+	double d;
+};
+
+namespace daw::json {
+	template<>
+	struct json_data_contract<Foo> {
+		static constexpr char const bar[] = "bar";
+		static constexpr char const d[] = "d";
+		using type =
+		  json_member_list<json_link<bar, std::string>, json_link<d, double>>;
+	};
+} // namespace daw::json
+
 int main( ) {
-	auto srv = daw::json_rpc::json_rpc_dispatch( );
-	srv.add_method( "mul", []( int l, int r ) { return l * r; } );
-	srv.add_method( "add", add );
+	auto server = daw::json_rpc::json_rpc_server( );
+	auto disp = daw::json_rpc::json_rpc_dispatch( );
+	disp.add_method( "mul", []( int l, int r ) { return l * r; } );
+	disp.add_method( "add", add );
+	// { "jsonrpc": "2.0", "method": "mul", "params": [45,22] }
+	disp.add_method( "status", []( Foo f ) {
+		std::cout << "Hello" << f.bar << '\n';
+		return f.d;
+	} );
 
-	/*
-	constexpr std::string_view json_req =
-	  R"({ "jsonrpc": "2.0", "method": "mul", "params": [45,22] })";
-	std::cout << "req: " << json_req << '\n';
-	auto resp = std::string( 1024, '\0' );
-
-	srv( "mul", json_req, { }, resp.data( ) );
-	std::cout << "resp: " << resp.c_str( ) << '\n';
-*/
-
-	auto ioctx = boost::asio::io_context( 1 );
-	auto const address = boost::asio::ip::make_address( "0.0.0.0" );
-	std::uint16_t port = 12345U;
-	auto endpoint = boost::asio::ip::tcp::endpoint( address, port );
-	auto ctx = boost::asio::ssl::context{ boost::asio::ssl::context::tlsv12 };
-	auto doc_root = std::make_shared<std::string>( "/" );
-	auto listener =
-	  std::make_shared<daw::json_rpc_server::json_rpc_server_listener>(
-	    ioctx, ctx, endpoint, doc_root );
-
-	listener->run( );
+	server.add_dispatcher( "/rpc", disp );
+	server.listen( "localhost", 1234 );
 	return 0;
 }

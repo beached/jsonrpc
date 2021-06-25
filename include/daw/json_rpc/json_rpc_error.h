@@ -6,11 +6,13 @@
 
 #pragma once
 
+#include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
 
 #include <optional>
 #include <string_view>
 #include <tuple>
+#include <variant>
 
 namespace daw::json_rpc::details {
 	template<typename Error>
@@ -18,35 +20,39 @@ namespace daw::json_rpc::details {
 		int code;
 		std::string message;
 		Error data;
-		std::optional<std::string_view> id;
+		std::optional<std::variant<double, std::string_view>> id{ };
 
-		inline json_rpc_error( int c, std::string msg, Error d,
-		                       std::optional<std::string_view> i )
+		inline json_rpc_error(
+		  int c, std::string msg, Error d,
+		  std::optional<std::variant<double, std::string_view>> i )
 		  : code( c )
-		  , message( std::move( msg ) )
-		  , data( std::move( d ) )
+		  , message( DAW_MOVE( msg ) )
+		  , data( DAW_MOVE( d ) )
 		  , id( i ) {}
 
-		inline json_rpc_error( std::string_view /*rpc_ver*/, int c, std::string msg,
-		                       Error d, std::optional<std::string_view> i )
-		  : json_rpc_error( c, std::move( msg ), std::move( d ), i ) {}
+		inline json_rpc_error(
+		  std::string_view /*rpc_ver*/, int c, std::string msg, Error d,
+		  std::optional<std::variant<double, std::string_view>> i )
+		  : json_rpc_error( c, DAW_MOVE( msg ), DAW_MOVE( d ), i ) {}
 	};
 
 	template<>
 	struct json_rpc_error<void> {
 		int code;
 		std::string message;
-		std::optional<std::string_view> id;
+		std::optional<std::variant<double, std::string_view>> id;
 
-		inline json_rpc_error( int c, std::string msg,
-		                       std::optional<std::string_view> i )
+		inline json_rpc_error(
+		  int c, std::string msg,
+		  std::optional<std::variant<double, std::string_view>> i )
 		  : code( c )
-		  , message( std::move( msg ) )
+		  , message( DAW_MOVE( msg ) )
 		  , id( i ) {}
 
-		inline json_rpc_error( std::string_view /*rpc_ver*/, int c, std::string msg,
-		                       std::optional<std::string_view> i )
-		  : json_rpc_error( c, std::move( msg ), i ) {}
+		inline json_rpc_error(
+		  std::string_view /*rpc_ver*/, int c, std::string msg,
+		  std::optional<std::variant<double, std::string_view>> i )
+		  : json_rpc_error( c, DAW_MOVE( msg ), i ) {}
 	};
 } // namespace daw::json_rpc::details
 
@@ -61,7 +67,8 @@ namespace daw::json {
 		using type = json_member_list<
 		  json_link<mem_jsonrpc, std::string_view>, json_link<mem_code, int>,
 		  json_link<mem_message, std::string>, json_link<mem_data, Error>,
-		  json_link<mem_id, std::optional<std::string_view>>>;
+		  json_variant_null<mem_id,
+		                    std::optional<std::variant<double, std::string_view>>>>;
 
 		static inline auto
 		to_json_data( daw::json_rpc::details::json_rpc_error<Error> const &value ) {
@@ -77,11 +84,11 @@ namespace daw::json {
 		static constexpr char const mem_code[] = "code";
 		static constexpr char const mem_message[] = "message";
 		static constexpr char const mem_id[] = "id";
-		using type =
-		  json_member_list<json_link<mem_jsonrpc, std::string_view>,
-		                   json_link<mem_code, int>,
-		                   json_link<mem_message, std::string>,
-		                   json_link<mem_id, std::optional<std::string_view>>>;
+		using type = json_member_list<
+		  json_link<mem_jsonrpc, std::string_view>, json_link<mem_code, int>,
+		  json_link<mem_message, std::string>,
+		  json_variant_null<mem_id,
+		                    std::optional<std::variant<double, std::string_view>>>>;
 
 		static inline auto
 		to_json_data( daw::json_rpc::details::json_rpc_error<void> const &value ) {
@@ -90,5 +97,4 @@ namespace daw::json {
 			                              value.id );
 		}
 	};
-
 } // namespace daw::json
