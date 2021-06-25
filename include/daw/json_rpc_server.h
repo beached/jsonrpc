@@ -28,9 +28,8 @@ namespace daw::json_rpc {
 		json_rpc_server( json_rpc_server && ) noexcept = default;
 		json_rpc_server &operator=( json_rpc_server && ) noexcept = default;
 
-		bool listen( char const *host, std::uint16_t port, int socket_flags = 0 );
-		void stop( );
-		bool is_running( ) const;
+		void listen( std::uint16_t port );
+		void listen( std::string_view host, std::uint16_t port );
 
 		void add_dispatcher( std::string_view path, json_rpc_dispatch &disp );
 	};

@@ -30,8 +30,9 @@ namespace daw::json {
 	};
 } // namespace daw::json
 
+// { "jsonrpc": "2.0", "method": "mul", "params": [45,22] }
+
 int main( ) {
-	// { "jsonrpc": "2.0", "method": "mul", "params": [45,22] }
 	auto server = daw::json_rpc::json_rpc_server( );
 	auto dispatcher = daw::json_rpc::json_rpc_dispatch( );
 	dispatcher.add_method( "mul", []( int l, int r ) { return l * r; } );
@@ -42,6 +43,5 @@ int main( ) {
 	} );
 
 	server.add_dispatcher( "/rpc", dispatcher );
-	server.listen( "localhost", 1234 );
-	return 0;
+	server.listen( 1234 );
 }
