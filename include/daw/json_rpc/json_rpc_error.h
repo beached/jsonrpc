@@ -59,10 +59,9 @@ namespace daw::json {
 		static constexpr char const mem_data[] = "data";
 		static constexpr char const mem_id[] = "id";
 		using type = json_member_list<
-		  json_string_raw<mem_jsonrpc, std::string_view>,
-		  json_number<mem_code, int>, json_string<mem_message>,
-		  daw::json::json_details::unnamed_default_type_mapping<Error, mem_data>,
-		  json_string_raw_null<mem_id, std::string_view>>;
+		  json_link<mem_jsonrpc, std::string_view>, json_link<mem_code, int>,
+		  json_link<mem_message, std::string>, json_link<mem_data, Error>,
+		  json_link<mem_id, std::optional<std::string_view>>>;
 
 		static inline auto
 		to_json_data( daw::json_rpc::details::json_rpc_error<Error> const &value ) {
@@ -79,9 +78,10 @@ namespace daw::json {
 		static constexpr char const mem_message[] = "message";
 		static constexpr char const mem_id[] = "id";
 		using type =
-		  json_member_list<json_string_raw<mem_jsonrpc, std::string_view>,
-		                   json_number<mem_code, int>, json_string<mem_message>,
-		                   json_string_raw_null<mem_id, std::string_view>>;
+		  json_member_list<json_link<mem_jsonrpc, std::string_view>,
+		                   json_link<mem_code, int>,
+		                   json_link<mem_message, std::string>,
+		                   json_link<mem_id, std::optional<std::string_view>>>;
 
 		static inline auto
 		to_json_data( daw::json_rpc::details::json_rpc_error<void> const &value ) {

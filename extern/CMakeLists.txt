@@ -16,14 +16,15 @@ include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 FetchContent_Declare(
-  daw_json_link
-  GIT_REPOSITORY https://github.com/beached/daw_json_link.git
-  GIT_TAG release
+	daw_json_link
+	GIT_REPOSITORY https://github.com/beached/daw_json_link.git
+	GIT_TAG develop
 )
 
 FetchContent_Declare(
-  fmtlib
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+	fmtlib
+	GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+	GIT_TAG 8.0.0
 )
 
 FetchContent_MakeAvailable(daw_json_link fmtlib)

@@ -44,8 +44,7 @@ namespace daw::json {
 		static constexpr char const mem_result[] = "result";
 		static constexpr char const mem_id[] = "id";
 		using type = json_member_list<
-		  json_string_raw<mem_jsonrpc, std::string_view>,
-		  daw::json::json_details::unnamed_default_type_mapping<Result, mem_result>,
+		  json_link<mem_jsonrpc, std::string_view>, json_link<mem_result, Result>,
 		  json_string_raw_null<mem_id, std::optional<std::string_view>>>;
 
 		static inline auto to_json_data(

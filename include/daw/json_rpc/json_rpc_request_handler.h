@@ -95,4 +95,11 @@ namespace daw::json_rpc {
 	template<typename Result, typename... Args>
 	request_handler( Result ( * )( Args... ) )
 	  -> request_handler<Result( Args... )>;
+
+
+	template<typename...>
+	inline constexpr bool is_request_handler_v = false;
+
+	template<typename Result, typename...Args>
+	inline constexpr bool is_request_handler_v<request_handler<Result, Args...>> = true;
 } // namespace daw::json_rpc
