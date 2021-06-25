@@ -65,22 +65,29 @@ namespace daw::json_rpc {
 		      std::tuple<Args...>( DAW_FWD( args )... ),
 		      std::make_index_sequence<( sizeof...( Args ) / 2 )>{ } ) {}
 
-		char *operator( )( std::string const &name, std::string_view json_arguments,
-		                   std::optional<std::string_view> id, char *out_it ) const;
+		void operator( )( std::string const &name, std::string_view json_arguments,
+		                   std::optional<std::string_view> id,
+		                   std::string &buff ) const;
 
-		template<typename Handler>
+		struct deduced_signature {};
+
+		template<typename Sig = deduced_signature, typename Handler>
 		inline void add_method( std::string name, Handler &&handler ) {
 			using handler_t = daw::remove_cvref_t<Handler>;
 			if constexpr( is_request_handler_v<handler_t> ) {
 				m_handlers.insert_or_assign( DAW_MOVE( name ),
-				                             DAW_MOVE( handler ).callback( ) );
-			} else {
+				                             DAW_FWD( handler ).callback( ) );
+			} else if constexpr( std::is_same_v<Sig, deduced_signature> ) {
 				using func_t = daw::func::function_traits<handler_t>;
 				using make_handler_t = impl::make_handler<typename func_t::result_t,
 				                                          typename func_t::params_t>;
 				using req_handler_t = typename make_handler_t::handler;
 				m_handlers.template insert_or_assign(
 				  DAW_MOVE( name ), req_handler_t( DAW_FWD( handler ) ).callback( ) );
+			} else {
+				m_handlers.insert_or_assign(
+				  DAW_MOVE( name ),
+				  request_handler<Sig>( DAW_FWD( handler ) ).callback( ) );
 			}
 		}
 	};

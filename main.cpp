@@ -8,40 +8,92 @@
 
 #include "daw/json_rpc_server.h"
 
-#include <iostream>
+#include <cstdint>
+#include <ctre.hpp>
 #include <string_view>
+#include <tuple>
 
-int add( int a, int b ) {
-	return a + b;
+struct User {
+	std::string id;
+	std::string email;
+	std::string name;
+	std::string password;
+};
+
+using namespace ctre::literals;
+
+static constexpr auto email_matcher =
+  R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex"_ctre;
+
+constexpr bool validate_email( std::string_view addr ) {
+	return email_matcher.match( addr );
 }
 
-struct Foo {
-	std::string bar;
-	double d;
+std::string_view validate( User const &u ) {
+	if( not validate_email( u.email ) ) {
+		return "invalid email";
+	}
+
+	if( u.name.size( ) < 4 ) {
+		return "Name is too short";
+	}
+
+	if( u.password.size( ) < 4 ) {
+		return "Password is too short";
+	}
+	return { };
+}
+
+struct Response {
+	std::string message;
+	std::int32_t code;
+	User user;
 };
 
 namespace daw::json {
 	template<>
-	struct json_data_contract<Foo> {
-		static constexpr char const bar[] = "bar";
-		static constexpr char const d[] = "d";
+	struct json_data_contract<User> {
+		static constexpr char const id[] = "id";
+		static constexpr char const email[] = "email";
+		static constexpr char const name[] = "name";
+		static constexpr char const password[] = "password";
+
+		using type = json_member_list<
+		  json_link<id, std::string>, json_link<email, std::string>,
+		  json_link<name, std::string>, json_link<password, std::string>>;
+
+		static inline auto to_json_data( User const &u ) {
+			return std::forward_as_tuple( u.id, u.email, u.name, u.password );
+		}
+	};
+
+	template<>
+	struct json_data_contract<Response> {
+		static constexpr char const message[] = "message";
+		static constexpr char const code[] = "code";
+		static constexpr char const user[] = "user";
+
 		using type =
-		  json_member_list<json_link<bar, std::string>, json_link<d, double>>;
+		  json_member_list<json_link<message, std::string>,
+		                   json_link<code, std::int32_t>, json_link<user, User>>;
+
+		static inline auto to_json_data( Response const &r ) {
+			return std::forward_as_tuple( r.message, r.code, r.user );
+		}
 	};
 } // namespace daw::json
-
-// { "jsonrpc": "2.0", "method": "mul", "params": [45,22] }
 
 int main( ) {
 	auto server = daw::json_rpc::json_rpc_server( );
 	auto dispatcher = daw::json_rpc::json_rpc_dispatch( );
-	dispatcher.add_method( "mul", []( int l, int r ) { return l * r; } );
-	dispatcher.add_method( "add", add );
-	dispatcher.add_method( "status", []( Foo f ) {
-		std::cout << "Hello" << f.bar << '\n';
-		return f.d;
+	dispatcher.add_method( "CreateUser", [&]( User u ) {
+		if( auto m = validate( u ); not m.empty( ) ) {
+			throw std::runtime_error( static_cast<std::string>( m ) );
+		}
+		u.id = "1000000";
+		return DAW_MOVE( u );
 	} );
 
-	server.add_dispatcher( "/rpc", dispatcher );
+	server.add_dispatcher( "/", dispatcher );
 	server.listen( 1234 );
 }

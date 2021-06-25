@@ -27,12 +27,12 @@ FetchContent_Declare(
 	GIT_TAG 8.0.0
 )
 
-#FetchContent_Declare(
-#	httplib
-#	GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-#	GIT_TAG v0.9.0
-#)
+FetchContent_Declare(
+   ctre
+	GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
+	GIT_TAG main
+)
 
-FetchContent_MakeAvailable(daw_json_link fmtlib )
+FetchContent_MakeAvailable(daw_json_link fmtlib ctre )
 
 

@@ -45,17 +45,21 @@ namespace daw::json {
 
 namespace daw::json_rpc {
 	json_rpc_server::json_rpc_server( )
-	  : m_impl( new impl_t{ } ) {}
+	  : m_impl( new impl_t{ } ) {
+
+		m_impl->server.loglevel( crow::LogLevel::Warning );
+	}
 
 	json_rpc_server::~json_rpc_server( ) = default;
 
 	void json_rpc_server::listen( std::uint16_t port ) {
-		m_impl->server.port( port ).run( );
+		m_impl->server.port( port ).multithreaded( ).run( );
 	}
 
 	void json_rpc_server::listen( std::string_view host, std::uint16_t port ) {
 		m_impl->server.bindaddr( static_cast<std::string>( host ) )
 		  .port( port )
+		  .multithreaded( )
 		  .run( );
 	}
 
@@ -66,33 +70,35 @@ namespace daw::json_rpc {
 	void json_rpc_server::add_dispatcher( std::string_view path,
 	                                      json_rpc_dispatch &disp ) {
 
+		static thread_local auto result = std::string{ };
 		m_impl->server.route_dynamic( static_cast<std::string>( path ) )
 		  .methods( "POST"_method )(
-		    [&disp, result = std::string( 1024, '\0' )](
-		      crow::request const &req, crow::response &res ) mutable {
+		    [&]( crow::request const &req, crow::response &res ) {
 			    using namespace daw::json;
 			    req_args args{ };
 			    try {
 				    try {
 					    args = from_json<req_args>( req.body );
 				    } catch( daw::json::json_exception const & ) {
-					    auto const j = to_json( details::json_rpc_error<void>(
-					      -32700, "Error handling request", { } ) );
+					    auto it = std::back_inserter( result );
+					    (void)to_json( details::json_rpc_error<void>(
+					                     -32700, "Error handling request", { } ),
+					                   it );
 					    res.add_header( "Content-Type", "application/json" );
 					    res.code = 400;
-					    res.write( j );
+					    res.write( result );
 				    }
-				    auto last =
-				      disp( DAW_MOVE( args.method ), req.body, { }, result.data( ) );
+				    disp( DAW_MOVE( args.method ), req.body, { }, result );
 				    res.add_header( "Content-Type", "application/json" );
-				    res.write( static_cast<std::string>(
-				      std::string_view( result.data( ), last - result.data( ) ) ) );
+				    res.write( result );
 			    } catch( ... ) {
-				    auto const j = to_json( details::json_rpc_error<void>(
-				      -32603, "Error handling request", { } ) );
+				    auto it = std::back_inserter( result );
+				    (void)to_json( details::json_rpc_error<void>(
+				                     -32603, "Error handling request", { } ),
+				                   it );
 				    res.add_header( "Content-Type", "application/json" );
 				    res.code = 500;
-				    res.write( j );
+				    res.write( result );
 			    }
 			    res.end( );
 		    } );

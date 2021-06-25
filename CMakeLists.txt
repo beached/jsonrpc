@@ -22,5 +22,5 @@ target_link_libraries(${PROJECT_NAME} daw::json_link Threads::Threads Boost::hea
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-add_executable(json_rpc_test main.cpp)
-target_link_libraries(json_rpc_test ${PROJECT_NAME})
+add_executable(json_rpc_test main.cpp )
+target_link_libraries(json_rpc_test ${PROJECT_NAME} ctre::ctre )
