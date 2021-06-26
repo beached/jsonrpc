@@ -10,6 +10,8 @@
 
 #include "json_rpc/json_rpc_dispatch.h"
 
+#include <crow/crow_all.h>
+
 #include <cstdint>
 #include <memory>
 #include <string_view>
@@ -31,6 +33,9 @@ namespace daw::json_rpc {
 		void listen( std::uint16_t port );
 		void listen( std::string_view host, std::uint16_t port );
 
-		void add_dispatcher( std::string_view path, json_rpc_dispatch &disp );
+		void add_path(
+		  std::string_view path, std::string_view method,
+		  std::function<void( crow::request const &, crow::response & )> handler );
+		void add_dispatcher( std::string_view path, json_rpc_dispatch &dispatcher );
 	};
 } // namespace daw::json_rpc

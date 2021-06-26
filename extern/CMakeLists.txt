@@ -6,33 +6,33 @@
 # Official repository: https://github.com/beached/daw_json_link
 #
 
-option( DAW_ENABLE_TESTING "Build unit tests" OFF )
-if( DAW_ENABLE_TESTING )
-	set( DAW_ENABLE_TESTING OFF )
-endif( )
+option(DAW_ENABLE_TESTING "Build unit tests" OFF)
+if (DAW_ENABLE_TESTING)
+  set(DAW_ENABLE_TESTING OFF)
+endif ()
 
 include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 FetchContent_Declare(
-	daw_json_link
-	GIT_REPOSITORY https://github.com/beached/daw_json_link.git
-	GIT_TAG develop
+    daw_json_link
+    GIT_REPOSITORY https://github.com/beached/daw_json_link.git
+    GIT_TAG develop
 )
 
 FetchContent_Declare(
-	fmtlib
-	GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-	GIT_TAG 8.0.0
+    ctre
+    GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
+    GIT_TAG main
 )
 
 FetchContent_Declare(
-   ctre
-	GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
-	GIT_TAG main
+    curl_wrapper
+    GIT_REPOSITORY https://github.com/beached/curl_wrapper.git
+    GIT_TAG master
 )
 
-FetchContent_MakeAvailable(daw_json_link fmtlib ctre )
+FetchContent_MakeAvailable(daw_json_link ctre curl_wrapper)
 
 

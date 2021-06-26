@@ -10,6 +10,7 @@
 #include "daw/json_rpc_server.h"
 #include "daw/json_rpc/json_rpc_dispatch.h"
 #include "daw/json_rpc/json_rpc_error.h"
+#include "daw/json_rpc/json_rpc_request.h"
 
 #include <daw/json/daw_json_link.h>
 
@@ -23,27 +24,6 @@ namespace daw::json_rpc {
 		crow::SimpleApp server{ };
 	};
 
-	inline namespace {
-		struct req_args {
-			std::string method;
-			std::optional<std::variant<double, std::string_view>> id;
-		};
-	} // namespace
-} // namespace daw::json_rpc
-
-namespace daw::json {
-	template<>
-	struct json_data_contract<daw::json_rpc::req_args> {
-		static constexpr char const mem_method[] = "method";
-		static constexpr char const mem_id[] = "id";
-		using type = json_member_list<
-		  json_string<mem_method>,
-		  json_variant_null<mem_id,
-		                    std::optional<std::variant<double, std::string_view>>>>;
-	};
-} // namespace daw::json
-
-namespace daw::json_rpc {
 	json_rpc_server::json_rpc_server( )
 	  : m_impl( new impl_t{ } ) {
 
@@ -67,40 +47,45 @@ namespace daw::json_rpc {
 		static constexpr char const mem_method[] = "method";
 		static constexpr char const mem_id[] = "id";
 	} // namespace
-	void json_rpc_server::add_dispatcher( std::string_view path,
-	                                      json_rpc_dispatch &disp ) {
 
-		static thread_local auto result = std::string{ };
+	void json_rpc_server::add_path(
+	  std::string_view path, std::string_view method,
+	  std::function<void( const crow::request &, crow::response & )> handler ) {
+
 		m_impl->server.route_dynamic( static_cast<std::string>( path ) )
-		  .methods( "POST"_method )(
-		    [&]( crow::request const &req, crow::response &res ) {
+		  .methods( operator""_method( method.data( ), method.size( ) ) )(
+		    handler );
+	}
+
+	void json_rpc_server::add_dispatcher( std::string_view path,
+	                                      json_rpc_dispatch &dispatcher ) {
+		m_impl->server.route_dynamic( static_cast<std::string>( path ) )
+		  .methods( crow::HTTPMethod::POST )(
+		    [&dispatcher]( crow::request const &req, crow::response &res ) {
 			    using namespace daw::json;
-			    req_args args{ };
+
+			    auto args = details::json_rpc_request{ };
+			    res.add_header( "Content-Type", "application/json" );
 			    try {
 				    try {
-					    args = from_json<req_args>( req.body );
+					    args = from_json<details::json_rpc_request>( req.body );
 				    } catch( daw::json::json_exception const & ) {
-					    auto it = std::back_inserter( result );
+					    auto it = std::back_inserter( res.body );
 					    (void)to_json( details::json_rpc_error<void>(
 					                     -32700, "Error handling request", { } ),
 					                   it );
-					    res.add_header( "Content-Type", "application/json" );
 					    res.code = 400;
-					    res.write( result );
 				    }
-				    disp( DAW_MOVE( args.method ), req.body, { }, result );
-				    res.add_header( "Content-Type", "application/json" );
-				    res.write( result );
+				    dispatcher( args, res.body );
 			    } catch( ... ) {
-				    auto it = std::back_inserter( result );
+				    auto it = std::back_inserter( res.body );
 				    (void)to_json( details::json_rpc_error<void>(
 				                     -32603, "Error handling request", { } ),
 				                   it );
-				    res.add_header( "Content-Type", "application/json" );
 				    res.code = 500;
-				    res.write( result );
 			    }
 			    res.end( );
 		    } );
 	}
+
 } // namespace daw::json_rpc

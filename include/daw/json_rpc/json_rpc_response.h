@@ -16,24 +16,29 @@ namespace daw::json_rpc::details {
 	template<typename Result>
 	struct json_rpc_response {
 		Result result;
-		std::optional<std::string_view> id;
+		std::optional<std::variant<double, std::string_view>> id;
 
-		inline json_rpc_response( Result const &r,
-		                          std::optional<std::string_view> i )
-		  : result( r )
-		  , id( i ) {}
+		inline json_rpc_response(
+		  Result const &result,
+		  std::optional<std::variant<double, std::string_view>> id )
+		  : result( result )
+		  , id( id ) {}
 
-		inline json_rpc_response( Result &&r, std::optional<std::string_view> i )
-		  : result( std::move( r ) )
-		  , id( i ) {}
+		inline json_rpc_response(
+		  Result &&result,
+		  std::optional<std::variant<double, std::string_view>> id )
+		  : result( DAW_MOVE( result ) )
+		  , id( id ) {}
 
-		inline json_rpc_response( std::string_view /*rpc_ver*/, Result const &r,
-		                          std::optional<std::string_view> i )
+		inline json_rpc_response(
+		  std::string_view /*rpc_ver*/, Result const &r,
+		  std::optional<std::variant<double, std::string_view>> i )
 		  : json_rpc_response( r, i ) {}
 
-		inline json_rpc_response( std::string_view /*rpc_ver*/, Result &&r,
-		                          std::optional<std::string_view> i )
-		  : json_rpc_response( std::move( r ), i ) {}
+		inline json_rpc_response(
+		  std::string_view /*rpc_ver*/, Result &&r,
+		  std::optional<std::variant<double, std::string_view>> i )
+		  : json_rpc_response( DAW_MOVE( r ), i ) {}
 	};
 } // namespace daw::json_rpc::details
 
@@ -43,9 +48,11 @@ namespace daw::json {
 		static constexpr char const mem_jsonrpc[] = "jsonrpc";
 		static constexpr char const mem_result[] = "result";
 		static constexpr char const mem_id[] = "id";
+
 		using type = json_member_list<
 		  json_link<mem_jsonrpc, std::string_view>, json_link<mem_result, Result>,
-		  json_string_raw_null<mem_id, std::optional<std::string_view>>>;
+		  json_variant_null<mem_id,
+		                    std::optional<std::variant<double, std::string_view>>>>;
 
 		static inline auto to_json_data(
 		  daw::json_rpc::details::json_rpc_response<Result> const &value ) {

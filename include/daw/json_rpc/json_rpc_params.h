@@ -18,9 +18,12 @@ namespace daw::json_rpc::details {
 	struct json_rpc_params {
 		std::tuple<Params...> params;
 
-		constexpr json_rpc_params( Params &&... ps )
-		  : params{ std::move( ps )... } {}
+		template<typename... Ps>
+		constexpr json_rpc_params( Ps &&...ps )
+		  : params{ DAW_FWD( ps )... } {}
 	};
+	template<typename... Ps>
+	json_rpc_params( Ps &&... ) -> json_rpc_params<Ps...>;
 } // namespace daw::json_rpc::details
 
 namespace daw::json {

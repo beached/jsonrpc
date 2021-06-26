@@ -7,6 +7,7 @@
 #pragma once
 
 #include "daw/daw_function_traits.h"
+#include "daw/json_rpc/json_rpc_request.h"
 #include "daw/json_rpc/json_rpc_request_handler.h"
 
 #include <daw/daw_move.h>
@@ -65,9 +66,7 @@ namespace daw::json_rpc {
 		      std::tuple<Args...>( DAW_FWD( args )... ),
 		      std::make_index_sequence<( sizeof...( Args ) / 2 )>{ } ) {}
 
-		void operator( )( std::string const &name, std::string_view json_arguments,
-		                   std::optional<std::string_view> id,
-		                   std::string &buff ) const;
+		void operator( )( details::json_rpc_request req, std::string &buff ) const;
 
 		struct deduced_signature {};
 

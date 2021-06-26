@@ -6,10 +6,10 @@
 // Official repository: https://github.com/beached/jsonrpc
 //
 
+#include "daw/json_rpc/validate_email.h"
 #include "daw/json_rpc_server.h"
 
 #include <cstdint>
-#include <ctre.hpp>
 #include <string_view>
 #include <tuple>
 
@@ -20,17 +20,8 @@ struct User {
 	std::string password;
 };
 
-static constexpr std::string_view email_regex =
-  R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex";
-
-static constexpr auto email_matcher = ctre::match<email_regex>;
-
-constexpr bool validate_email( std::string_view addr ) {
-	return email_matcher.match( addr );
-}
-
 std::string_view validate( User const &u ) {
-	if( not validate_email( u.email ) ) {
+	if( not is_valid_email( u.email ) ) {
 		return "invalid email";
 	}
 
@@ -83,6 +74,8 @@ namespace daw::json {
 	};
 } // namespace daw::json
 
+std::size_t count = 0;
+
 int main( ) {
 	auto server = daw::json_rpc::json_rpc_server( );
 	auto dispatcher = daw::json_rpc::json_rpc_dispatch( );
@@ -91,9 +84,19 @@ int main( ) {
 			throw std::runtime_error( static_cast<std::string>( m ) );
 		}
 		u.id = "1000000";
+		++count;
 		return DAW_MOVE( u );
 	} );
 
+	dispatcher.add_method( "status", [&]( ) { return count; } );
+
 	server.add_dispatcher( "/", dispatcher );
+
+	server.add_path( "/add", "GET",
+	                 [&]( crow::request const &req, crow::response &res ) {
+		                 res.body = std::to_string( ++count );
+		                 res.end( );
+	                 } );
+
 	server.listen( 1234 );
 }

@@ -8,17 +8,14 @@
 #include "daw/json_rpc/json_rpc_error_json.h"
 
 namespace daw::json_rpc {
-	void json_rpc_dispatch::operator( )( std::string const &name,
-	                                     std::string_view json_arguments,
-	                                     std::optional<std::string_view> id,
+	void json_rpc_dispatch::operator( )( details::json_rpc_request req,
 	                                     std::string &buff ) const {
 
-		if( auto pos = m_handlers.find( name ); pos != m_handlers.end( ) ) {
-			return pos->second( json_arguments, id, buff );
+		if( auto pos = m_handlers.find( req.method ); pos != m_handlers.end( ) ) {
+			return pos->second( req, buff );
 		}
-		buff.clear( );
 		auto it = std::back_inserter( buff );
 		daw::json::to_json(
-		  details::json_rpc_error<void>( -32601, "Method not found", id ), it );
+		  details::json_rpc_error<void>( -32601, "Method not found", req.id ), it );
 	}
 } // namespace daw::json_rpc
