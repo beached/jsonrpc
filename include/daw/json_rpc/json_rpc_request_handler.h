@@ -84,10 +84,9 @@ namespace daw::json_rpc {
 		request_handler( Result ( *cb )( Args... ) )
 		  : m_callback( make_callback<Result, Args...>( cb ) ) {}
 
-		inline void operator( )( std::string_view json_arguments,
-		                         std::optional<std::string_view> id,
+		inline void operator( )( details::json_rpc_request req,
 		                         std::string &buff ) const {
-			m_callback( json_arguments, id, buff );
+			m_callback( DAW_MOVE( req ), buff );
 		}
 
 		callback_type &callback( ) & {
