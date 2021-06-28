@@ -13,6 +13,7 @@
 #include <crow/crow_all.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string_view>
 
