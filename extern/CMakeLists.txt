@@ -21,6 +21,8 @@ FetchContent_Declare(
     GIT_TAG develop
 )
 
+set( CTRE_BUILD_TESTS OFF )
+set( CTRE_BUILD_PACKAGE OFF )
 FetchContent_Declare(
     ctre
     GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git

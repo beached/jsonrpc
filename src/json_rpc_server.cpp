@@ -8,84 +8,120 @@
 #define CROW_MAIN
 
 #include "daw/json_rpc_server.h"
+#include "daw/daw_storage_ref.h"
 #include "daw/json_rpc/json_rpc_dispatch.h"
-#include "daw/json_rpc/json_rpc_error.h"
-#include "daw/json_rpc/json_rpc_request.h"
+#include "daw/json_rpc/json_rpc_request_json.h"
+#include "daw/json_rpc/json_rpc_server_request.h"
 
+#include <daw/daw_construct_at.h>
+#include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
 
+#include <boost/filesystem.hpp>
 #include <crow/crow_all.h>
+#include <memory>
 #include <optional>
 #include <string_view>
-#include <variant>
 
 namespace daw::json_rpc {
-	struct json_rpc_server::impl_t {
-		crow::SimpleApp server{ };
-	};
+	inline namespace {
+		struct impl_t {
+			crow::SimpleApp server{ };
+		};
 
-	json_rpc_server::json_rpc_server( )
-	  : m_impl( new impl_t{ } ) {
+		inline constexpr auto get_ref =
+		  daw::storage_ref<impl_t, json_rpc_server::storage_t>{ };
+	} // namespace
 
-		m_impl->server.loglevel( crow::LogLevel::Warning );
+	json_rpc_server::json_rpc_server( ) {
+		static_assert( sizeof( impl_t ) <= sizeof( storage_t ) );
+		daw::construct_at<impl_t>( &m_storage );
+
+#if defined( NDEBUG )
+		get_ref( m_storage ).server.loglevel( crow::LogLevel::Warning );
+#endif
 	}
 
-	json_rpc_server::~json_rpc_server( ) = default;
-
-	void json_rpc_server::listen( std::uint16_t port ) {
-		m_impl->server.port( port ).multithreaded( ).run( );
+	json_rpc_server::~json_rpc_server( ) {
+		std::destroy_at( &get_ref( m_storage ) );
 	}
 
-	void json_rpc_server::listen( std::string_view host, std::uint16_t port ) {
-		m_impl->server.bindaddr( static_cast<std::string>( host ) )
+	json_rpc_server &json_rpc_server::listen( std::uint16_t port ) & {
+		get_ref( m_storage ).server.port( port ).multithreaded( ).run( );
+		return *this;
+	}
+
+	json_rpc_server &json_rpc_server::listen( std::string_view host,
+	                                          std::uint16_t port ) & {
+		get_ref( m_storage )
+		  .server.bindaddr( static_cast<std::string>( host ) )
 		  .port( port )
 		  .multithreaded( )
 		  .run( );
+		return *this;
 	}
 
-	inline namespace {
-		static constexpr char const mem_method[] = "method";
-		static constexpr char const mem_id[] = "id";
-	} // namespace
+	json_rpc_server &json_rpc_server::route_path_to(
+	  std::string_view req_path, std::string_view method,
+	  std::function<void( const crow::request &, crow::response & )> handler ) & {
 
-	void json_rpc_server::add_path(
-	  std::string_view path, std::string_view method,
-	  std::function<void( const crow::request &, crow::response & )> handler ) {
-
-		m_impl->server.route_dynamic( static_cast<std::string>( path ) )
+		get_ref( m_storage )
+		  .server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( operator""_method( method.data( ), method.size( ) ) )(
-		    handler );
+		    DAW_MOVE( handler ) );
+		return *this;
 	}
 
-	void json_rpc_server::add_dispatcher( std::string_view path,
-	                                      json_rpc_dispatch &dispatcher ) {
-		m_impl->server.route_dynamic( static_cast<std::string>( path ) )
+	json_rpc_server &
+	json_rpc_server::route_path_to( std::string_view req_path,
+	                                json_rpc_dispatch &dispatcher ) & {
+		get_ref( m_storage )
+		  .server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( crow::HTTPMethod::POST )(
 		    [&dispatcher]( crow::request const &req, crow::response &res ) {
 			    using namespace daw::json;
 
-			    auto args = details::json_rpc_request{ };
+			    auto args = details::json_rpc_server_request{ };
 			    res.add_header( "Content-Type", "application/json" );
 			    try {
 				    try {
-					    args = from_json<details::json_rpc_request>( req.body );
+					    args = from_json<details::json_rpc_server_request>( req.body );
 				    } catch( daw::json::json_exception const & ) {
 					    auto it = std::back_inserter( res.body );
-					    (void)to_json( details::json_rpc_error<void>(
-					                     -32700, "Error handling request", { } ),
-					                   it );
+					    (void)to_json(
+					      json_rpc_response_error{ { -32700, "Error handling request" } },
+					      it );
 					    res.code = 400;
 				    }
 				    dispatcher( args, res.body );
 			    } catch( ... ) {
 				    auto it = std::back_inserter( res.body );
-				    (void)to_json( details::json_rpc_error<void>(
-				                     -32603, "Error handling request", { } ),
-				                   it );
+				    (void)to_json(
+				      json_rpc_response_error{ { -32603, "Error handling request" } },
+				      it );
 				    res.code = 500;
 			    }
 			    res.end( );
 		    } );
+		return *this;
+	}
+
+	json_rpc_server &json_rpc_server::stop( ) & {
+		get_ref( m_storage ).server.stop( );
+		return *this;
+	}
+
+	json_rpc_server &json_rpc_server::route_path_to(
+	  std::string_view req_path, const std::string &fs_path,
+	  std::optional<std::string_view> default_resource ) & {
+
+		get_ref( m_storage )
+		  .server.route_dynamic( static_cast<std::string>( req_path ) )
+		  .methods( crow::HTTPMethod::GET )(
+		    [&]( crow::request const &req, crow::response &res ) {
+			    using namespace daw::json;
+		    } );
+		return *this;
 	}
 
 } // namespace daw::json_rpc

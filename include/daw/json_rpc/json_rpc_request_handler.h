@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include "json_rpc_error.h"
-#include "json_rpc_error_json.h"
 #include "json_rpc_params.h"
 #include "json_rpc_response.h"
+#include "json_rpc_server_request.h"
 
 #include <daw/json/daw_json_link.h>
 #include <daw/json/daw_json_value_state.h>
@@ -20,50 +19,47 @@
 
 namespace daw::json_rpc {
 	using callback_type =
-	  std::function<void( details::json_rpc_request, std::string & )>;
+	  std::function<void( details::json_rpc_server_request, std::string & )>;
 
 	template<typename Result, typename... Parameters, typename Callback>
 	callback_type make_callback( Callback &&c ) {
-		return [c = DAW_FWD( c )]( details::json_rpc_request req,
+		return [c = DAW_FWD( c )]( details::json_rpc_server_request req,
 		                           std::string &buff ) -> void {
 			auto it = std::back_inserter( buff );
 			if( not req.params and sizeof...( Parameters ) != 0 ) {
 				daw::json::to_json(
-				  details::json_rpc_error<void>( -32602, "Invalid params", req.id ),
-				  it );
+				  json_rpc_response_error( { -32602, "Invalid params" }, req.id ), it );
 				return;
 			}
 			try {
 				if constexpr( sizeof...( Parameters ) == 0 ) {
 					if( not req.params ) {
 						daw::json::to_json(
-						  details::json_rpc_response<Result>( c( ), req.id ), it );
+						  json_rpc_response_result<Result>( c( ), req.id ), it );
 						return;
 					}
 				} else {
 					if( not req.params ) {
 						daw::json::to_json(
-						  details::json_rpc_error<void>( -32602, "Invalid params", req.id ),
+						  json_rpc_response_error{ { -32602, "Invalid params" }, req.id },
 						  it );
 						return;
 					}
 				}
-				daw::json::to_json(
-				  details::json_rpc_response<Result>(
-				    std::apply(
-				      c, daw::json::from_json<details::json_rpc_params<Parameters...>>(
-				           *req.params )
-				           .params ),
-				    req.id ),
-				  it );
+				auto p = daw::json::from_json<
+				  daw::json::json_tuple_no_name<std::tuple<Parameters...>>>(
+				  *req.params );
+				auto resp =
+				  json_rpc_response_result<Result>( std::apply( c, p ), req.id );
+				daw::json::to_json( resp, it );
 			} catch( daw::json::json_exception const &je ) {
 				if( je.reason_type( ) == daw::json::ErrorReason::MissingMemberName ) {
 					daw::json::to_json(
-					  details::json_rpc_error<void>( -32602, "Invalid params", req.id ),
+					  json_rpc_response_error{ { -32602, "Invalid params" }, req.id },
 					  it );
 				}
 				daw::json::to_json(
-				  details::json_rpc_error<void>( -32700, "Parse Error", req.id ), it );
+				  json_rpc_response_error{ { -32700, "Parse Error" }, req.id }, it );
 			}
 		};
 	}
@@ -84,7 +80,7 @@ namespace daw::json_rpc {
 		request_handler( Result ( *cb )( Args... ) )
 		  : m_callback( make_callback<Result, Args...>( cb ) ) {}
 
-		inline void operator( )( details::json_rpc_request req,
+		inline void operator( )( details::json_rpc_server_request req,
 		                         std::string &buff ) const {
 			m_callback( DAW_MOVE( req ), buff );
 		}

@@ -16,27 +16,49 @@
 #include <functional>
 #include <memory>
 #include <string_view>
+#include <type_traits>
 
 namespace daw::json_rpc {
-	class json_rpc_server {
-		struct impl_t;
-		std::unique_ptr<impl_t> m_impl;
+	struct json_rpc_server {
+		using storage_t = std::aligned_storage_t<1024, 64>;
+
+	private:
+		storage_t m_storage{ };
 
 	public:
 		json_rpc_server( );
 		~json_rpc_server( );
-
+		json_rpc_server( json_rpc_server &&other ) = delete;
+		json_rpc_server &operator=( json_rpc_server &&rhs ) = delete;
 		json_rpc_server( json_rpc_server const & ) = delete;
 		json_rpc_server &operator=( json_rpc_server const & ) = delete;
-		json_rpc_server( json_rpc_server && ) noexcept = default;
-		json_rpc_server &operator=( json_rpc_server && ) noexcept = default;
 
-		void listen( std::uint16_t port );
-		void listen( std::string_view host, std::uint16_t port );
+		json_rpc_server &listen( std::uint16_t port ) &;
+		json_rpc_server &listen( std::string_view host, std::uint16_t port ) &;
+		json_rpc_server &stop( ) &;
 
-		void add_path(
-		  std::string_view path, std::string_view method,
-		  std::function<void( crow::request const &, crow::response & )> handler );
-		void add_dispatcher( std::string_view path, json_rpc_dispatch &dispatcher );
+		json_rpc_server &route_path_to(
+		  std::string_view req_path, std::string_view method,
+		  std::function<void( crow::request const &, crow::response & )> handler )
+		  &;
+
+		template<typename Result, typename Class>
+		json_rpc_server &route_path_to( std::string_view req_path,
+		                                std::string_view method, Result Class::*pm,
+		                                Class &obj ) & {
+
+			return route_path_to(
+			  req_path, method,
+			  [pm, obj]( crow::request const &req, crow::response &res ) mutable {
+				  (void)( obj.*pm )( req, res );
+			  } );
+		}
+
+		json_rpc_server &route_path_to( std::string_view req_path,
+		                                json_rpc_dispatch &dispatcher ) &;
+
+		json_rpc_server &
+		route_path_to( std::string_view req_path, std::string const &fs_path,
+		               std::optional<std::string_view> default_resource ) &;
 	};
 } // namespace daw::json_rpc

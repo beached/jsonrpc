@@ -77,26 +77,31 @@ namespace daw::json {
 std::size_t count = 0;
 
 int main( ) {
-	auto server = daw::json_rpc::json_rpc_server( );
 	auto dispatcher = daw::json_rpc::json_rpc_dispatch( );
-	dispatcher.add_method( "CreateUser", [&]( User u ) {
-		if( auto m = validate( u ); not m.empty( ) ) {
-			throw std::runtime_error( static_cast<std::string>( m ) );
-		}
-		u.id = "1000000";
-		++count;
-		return DAW_MOVE( u );
-	} );
+	dispatcher
+	  .add_method( "CreateUser",
+	               [&]( User u ) {
+		               if( auto m = validate( u ); not m.empty( ) ) {
+			               throw std::runtime_error( static_cast<std::string>( m ) );
+		               }
+		               u.id = "1000000";
+		               ++count;
+		               return DAW_MOVE( u );
+	               } )
+	  .add_method( "add", []( int a, int b ) { return a + b; } )
+	  .add_method( "status", [&]( ) { return count; } );
 
-	dispatcher.add_method( "status", [&]( ) { return count; } );
-
-	server.add_dispatcher( "/", dispatcher );
-
-	server.add_path( "/add", "GET",
-	                 [&]( crow::request const &req, crow::response &res ) {
-		                 res.body = std::to_string( ++count );
-		                 res.end( );
-	                 } );
-
-	server.listen( 1234 );
+	auto server = daw::json_rpc::json_rpc_server( );
+	server.route_path_to( "/", dispatcher )
+	  .route_path_to( "/add", "GET",
+	                  [&]( crow::request const &req, crow::response &res ) {
+		                  res.body = std::to_string( ++count );
+		                  res.end( );
+	                  } )
+	  .route_path_to( "/quit", "GET",
+	                  [&]( crow::request const &, crow::response &res ) {
+		                  res.end( );
+		                  server.stop( );
+	                  } )
+	  .listen( 1234 );
 }

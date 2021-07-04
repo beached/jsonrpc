@@ -7,19 +7,20 @@
 #pragma once
 
 #include "daw/daw_function_traits.h"
-#include "daw/json_rpc/json_rpc_request.h"
 #include "daw/json_rpc/json_rpc_request_handler.h"
+#include "daw/json_rpc/json_rpc_server_request.h"
 
 #include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
 
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 namespace daw::json_rpc {
 	namespace impl {
-		template<typename, typename...>
+		template<typename Result, typename... Args>
 		struct make_handler;
 
 		template<typename Result, typename... Args>
@@ -28,29 +29,34 @@ namespace daw::json_rpc {
 		};
 	} // namespace impl
 
-	class json_rpc_dispatch {
-		struct impl_t;
-		std::unique_ptr<impl_t> m_impl;
+	struct json_rpc_dispatch {
+		using storage_t = std::aligned_storage_t<64, 64>;
+
+	private:
+		storage_t m_storage{ };
 
 		void add_method( std::string, json_rpc::callback_type && );
 
-	public:
-		explicit json_rpc_dispatch( );
-		json_rpc_dispatch( json_rpc_dispatch && ) = default;
-		json_rpc_dispatch &operator=( json_rpc_dispatch && ) = default;
-		~json_rpc_dispatch( );
-
-		json_rpc_dispatch( json_rpc_dispatch const & ) = delete;
-		json_rpc_dispatch &operator=( json_rpc_dispatch const & ) = delete;
-
-		void operator( )( details::json_rpc_request req, std::string &buff ) const;
-
 		struct deduce_signature;
 
-		template<typename Sig = deduce_signature, typename Handler>
-		inline auto add_method( std::string name, Handler &&handler )
-		  -> std::enable_if_t<
-		    not is_request_handler_v<daw::remove_cvref_t<Handler>>> {
+	public:
+		explicit json_rpc_dispatch( );
+		json_rpc_dispatch( json_rpc_dispatch &&other ) noexcept( false );
+		json_rpc_dispatch( json_rpc_dispatch const &other ) noexcept( false );
+		json_rpc_dispatch &operator=( json_rpc_dispatch &&rhs ) noexcept( false );
+		json_rpc_dispatch &
+		operator=( json_rpc_dispatch const &rhs ) noexcept( false );
+		~json_rpc_dispatch( );
+
+		void operator( )( details::json_rpc_server_request const &req,
+		                  std::string &buff ) const;
+
+		template<typename Sig = deduce_signature, typename Handler,
+		         typename std::enable_if_t<
+		           not is_request_handler_v<daw::remove_cvref_t<Handler>>,
+		           std::nullptr_t> = nullptr>
+		inline json_rpc_dispatch &add_method( std::string name,
+		                                      Handler &&handler ) & {
 
 			using handler_t = daw::remove_cvref_t<Handler>;
 			if constexpr( is_request_handler_v<handler_t> ) {
@@ -66,6 +72,7 @@ namespace daw::json_rpc {
 				add_method( DAW_MOVE( name ),
 				            request_handler<Sig>( DAW_FWD( handler ) ).callback( ) );
 			}
+			return *this;
 		}
 	};
 } // namespace daw::json_rpc
