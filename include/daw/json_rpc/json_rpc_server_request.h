@@ -41,8 +41,8 @@ namespace daw::json_rpc::details {
 		  std::string_view Method, std::tuple<Ts...> args,
 		  std::optional<std::variant<double, std::string>> Id = { } )
 		  : method( static_cast<std::string>( Method ) )
-		  , id( DAW_MOVE( Id ) )
-		  , params{ DAW_MOVE( args ) } {}
+		  , params{ DAW_MOVE( args ) }
+		  , id( DAW_MOVE( Id ) ) {}
 
 		/// Constructor used by serialization library
 		json_rpc_client_request(
@@ -51,8 +51,8 @@ namespace daw::json_rpc::details {
 		  std::optional<std::variant<double, std::string>> Id )
 		  : jsonrpc( jsonRpc )
 		  , method( static_cast<std::string>( Method ) )
-		  , id( DAW_MOVE( Id ) )
-		  , params( DAW_MOVE( Params ) ) {}
+		  , params( DAW_MOVE( Params ) )
+		  , id( DAW_MOVE( Id ) ) {}
 	};
 	template<typename... Ts>
 	json_rpc_client_request( std::string_view, std::tuple<Ts...>,

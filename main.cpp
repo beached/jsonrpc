@@ -94,7 +94,7 @@ int main( ) {
 	auto server = daw::json_rpc::json_rpc_server( );
 	server.route_path_to( "/", dispatcher )
 	  .route_path_to( "/add", "GET",
-	                  [&]( crow::request const &req, crow::response &res ) {
+	                  [&]( crow::request const &, crow::response &res ) {
 		                  res.body = std::to_string( ++count );
 		                  res.end( );
 	                  } )

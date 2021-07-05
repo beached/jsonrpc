@@ -26,7 +26,7 @@ namespace daw::json {
 	struct json_data_contract<daw::json_rpc::details::json_rpc_server_request> {
 		using type = json_member_list<json_link<mem_jsonrpc, std::string_view>,
 		                              json_link<mem_method, std::string>,
-		                              json_delayed_null<mem_params>,
+		                              json_raw_null<mem_params>,
 		                              daw::json_rpc::details::id_json_map_type>;
 
 		static inline auto to_json_data(

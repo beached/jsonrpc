@@ -63,13 +63,13 @@ namespace daw::json_rpc {
 
 		json_rpc_response_error( Error<Data> err, details::id_type Id = { } )
 		  : error( DAW_MOVE( err ) )
-		  , id( DAW_MOVE( id ) ) {}
+		  , id( DAW_MOVE( Id ) ) {}
 
 		json_rpc_response_error( std::string &&JsonRPC, Error<Data> &&err,
 		                         details::id_type &&Id )
 		  : jsonrpc( DAW_MOVE( JsonRPC ) )
 		  , error( DAW_MOVE( err ) )
-		  , id( DAW_MOVE( id ) ) {}
+		  , id( DAW_MOVE( Id ) ) {}
 	};
 
 	template<typename Data>
@@ -330,7 +330,7 @@ namespace daw::json {
 	  daw::json_rpc::json_rpc_response<Result, ErrorData>> {
 		static constexpr char const mem_error[] = "error";
 		using type = json_submember_tagged_variant<
-		  json_delayed_null<mem_error>,
+		  json_raw_null<mem_error>,
 		  daw::json_rpc::json_rpc_response_details::response_switcher,
 		  daw::json_rpc::json_rpc_response_result<Result>,
 		  daw::json_rpc::json_rpc_response_error<ErrorData>>;

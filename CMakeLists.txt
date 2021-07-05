@@ -19,6 +19,8 @@ add_library(${PROJECT_NAME}
         src/json_rpc_server.cpp
         )
 
+add_compile_options( -Wall -Wextra -pedantic -Werror )
+
 target_link_libraries(${PROJECT_NAME} daw::json_link daw::curl_wrapper Threads::Threads Boost::headers Boost::system Boost::regex)
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
