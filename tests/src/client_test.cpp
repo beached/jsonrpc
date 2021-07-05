@@ -11,10 +11,10 @@
 #include <iostream>
 
 int main( ) {
-	auto r = daw::json_rpc::json_rpc_client<daw::json::json_value>(
-	  "http://127.0.0.1:1234/", "add", 1, 2 );
+	auto r = daw::json_rpc::json_rpc_client<int>( "http://127.0.0.1:1234/", "add",
+	                                              1, 2 );
 	if( r.has_error( ) ) {
 		throw r.error( );
 	}
-	std::cout << r.result( ).get_string( ) << '\n';
+	std::cout << r.result( ) << '\n';
 }
