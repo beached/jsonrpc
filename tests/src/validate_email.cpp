@@ -8,17 +8,17 @@
 
 #include "daw/json_rpc/validate_email.h"
 
-#include <ctre.hpp>
+#include <daw/daw_utility.h>
 
+#include <boost/regex.hpp>
 #include <string_view>
 
 inline namespace {
-	static inline constexpr std::string_view email_regex =
-	  R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex";
-
-	static inline constexpr auto email_matcher = ctre::match<email_regex>;
+	static std::string const email_regex = R"regex(^[^\s]+[^\s]+\.[^\s]+$)regex";
+	static auto const email_matcher = boost::regex( email_regex );
 } // namespace
 
 bool is_valid_email( std::string_view addr ) {
-	return email_matcher.match( addr );
+	return boost::regex_match( std::data( addr ), daw::data_end( addr ),
+	                           email_matcher );
 }

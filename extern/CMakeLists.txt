@@ -21,20 +21,12 @@ FetchContent_Declare(
     GIT_TAG develop
 )
 
-set( CTRE_BUILD_TESTS OFF )
-set( CTRE_BUILD_PACKAGE OFF )
-FetchContent_Declare(
-    ctre
-    GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
-    GIT_TAG main
-)
-
 FetchContent_Declare(
     curl_wrapper
     GIT_REPOSITORY https://github.com/beached/curl_wrapper.git
     GIT_TAG master
 )
 
-FetchContent_MakeAvailable(daw_json_link ctre curl_wrapper)
+FetchContent_MakeAvailable(daw_json_link curl_wrapper)
 
 

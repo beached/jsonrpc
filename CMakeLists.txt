@@ -21,12 +21,17 @@ add_library(${PROJECT_NAME}
 
 add_compile_options( -Wall -Wextra -pedantic -Werror )
 
+add_custom_target( full )
+
 target_link_libraries(${PROJECT_NAME} daw::json_link daw::curl_wrapper Threads::Threads Boost::headers Boost::system Boost::regex)
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
 add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_dependencies( full ${PROJECT_NAME} )
 
-add_executable(json_rpc_test main.cpp src/validate_email.cpp)
-target_link_libraries(json_rpc_test ${PROJECT_NAME} ctre::ctre)
+add_executable(json_rpc_server_test tests/src/server_test.cpp tests/src/validate_email.cpp)
+target_link_libraries(json_rpc_server_test ${PROJECT_NAME} Boost::regex )
+add_dependencies( full json_rpc_server_test )
 
 add_executable(json_rpc_client_test tests/src/client_test.cpp)
 target_link_libraries(json_rpc_client_test ${PROJECT_NAME} OpenSSL::SSL OpenSSL::Crypto CURL::libcurl )
+add_dependencies( full json_rpc_client_test )
