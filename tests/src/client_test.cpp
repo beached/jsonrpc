@@ -11,8 +11,15 @@
 #include <iostream>
 
 int main( ) {
+	daw::json_rpc::json_rpc_notification( "http://127.0.0.1:1234/", "inc_count" );
+
+	auto count = daw::json_rpc::json_rpc_client<int>( "http://127.0.0.1:1234/",
+	                                                  "status", "1" );
+
+	(void)count;
+
 	auto r = daw::json_rpc::json_rpc_client<int>( "http://127.0.0.1:1234/", "add",
-	                                              1, 2 );
+	                                              "2", 1, 2 );
 	if( r.has_error( ) ) {
 		throw r.error( );
 	}

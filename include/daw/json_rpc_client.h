@@ -38,10 +38,11 @@ namespace daw::json_rpc {
 		template<typename T>
 		using client_type_map_t = typename client_type_map<T>::type;
 	} // namespace details
+
 	template<typename Result, typename... Args>
-	json_rpc_response<Result> json_rpc_client_with_id(
-	  std::string const &uri, std::string const &method_name,
-	  std::optional<std::variant<double, std::string>> id, Args const &...args ) {
+	json_rpc_response<Result>
+	json_rpc_client( std::string const &uri, std::string const &method_name,
+	                 details::req_id_type id, Args const &...args ) {
 		auto req = details::json_rpc_client_request(
 		  method_name, std::tuple<details::client_type_map_t<Args>...>{ args... },
 		  id );
@@ -53,11 +54,17 @@ namespace daw::json_rpc {
 		return daw::json::from_json<json_rpc_response<Result>>( resp_str );
 	}
 
-	template<typename Result, typename... Args>
-	json_rpc_response<Result> json_rpc_client( std::string const &uri,
-	                                           std::string method_name,
-	                                           Args const &...args ) {
-		return json_rpc_client_with_id<Result>( uri, method_name, { }, args... );
+	template<typename... Args>
+	void json_rpc_notification( std::string const &uri, std::string method_name,
+	                            Args const &...args ) {
+		auto req = details::json_rpc_client_request(
+		  method_name, std::tuple<details::client_type_map_t<Args>...>{ args... },
+		  { } );
+		auto req_json = daw::json::to_json( req );
+		auto client = daw::curl_wrapper( );
+		client.add_header( "Content-Type", "application/json" );
+		client.set_body( req_json );
+		(void)client.get_string( uri );
 	}
 
 } // namespace daw::json_rpc

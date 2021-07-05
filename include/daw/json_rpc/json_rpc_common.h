@@ -15,7 +15,8 @@
 #include <variant>
 
 namespace daw::json_rpc::details {
-	using id_type = std::optional<std::variant<double, std::string>>;
+	using req_id_type = std::variant<double, std::string>;
+	using id_type = std::optional<req_id_type>;
 	static constexpr inline char const id_json_mem_name[] = "id";
 
 	using id_json_map_type = daw::json::json_variant<
@@ -23,4 +24,4 @@ namespace daw::json_rpc::details {
 	  daw::json::json_variant_type_list<double, std::string>,
 	  daw::json::nullable_constructor<std::optional<id_type>>,
 	  daw::json::JsonNullable::NullVisible>;
-} // namespace daw::jsonrpc::details
+} // namespace daw::json_rpc::details

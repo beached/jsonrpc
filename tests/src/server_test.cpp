@@ -89,7 +89,8 @@ int main( ) {
 		               return DAW_MOVE( u );
 	               } )
 	  .add_method( "add", []( int a, int b ) { return a + b; } )
-	  .add_method( "status", [&]( ) { return count; } );
+	  .add_method( "status", [&]( ) { return count; } )
+	  .add_method( "inc_count", [&]( ) { return count++; } );
 
 	auto server = daw::json_rpc::json_rpc_server( );
 	server.route_path_to( "/", dispatcher )

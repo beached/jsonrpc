@@ -82,7 +82,6 @@ namespace daw::json_rpc {
 			    using namespace daw::json;
 
 			    auto args = details::json_rpc_server_request{ };
-			    res.add_header( "Content-Type", "application/json" );
 			    try {
 				    try {
 					    args = from_json<details::json_rpc_server_request>( req.body );
@@ -94,6 +93,11 @@ namespace daw::json_rpc {
 					    res.code = 400;
 				    }
 				    dispatcher( args, res.body );
+				    if( args.id ) {
+					    res.add_header( "Content-Type", "application/json" );
+				    } else {
+					    res.body.clear( );
+				    }
 			    } catch( ... ) {
 				    auto it = std::back_inserter( res.body );
 				    (void)to_json( json_rpc_response_error(
