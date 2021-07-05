@@ -18,8 +18,9 @@ namespace daw::json_rpc {
 		  daw::storage_ref<impl_t, json_rpc_dispatch::storage_t>{ };
 	} // namespace
 
-	void json_rpc_dispatch::operator( )( details::json_rpc_server_request const &req,
-	                                     std::string &buff ) const {
+	void
+	json_rpc_dispatch::operator( )( details::json_rpc_server_request const &req,
+	                                std::string &buff ) const {
 
 		if( auto pos = get_ref( m_storage ).handlers.find( req.method );
 		    pos != get_ref( m_storage ).handlers.end( ) ) {
@@ -27,7 +28,8 @@ namespace daw::json_rpc {
 		}
 		auto it = std::back_inserter( buff );
 		daw::json::to_json(
-		  json_rpc_response_error{ { -32601, "Method not found" }, req.id }, it );
+		  json_rpc_response_error( Error( -32601, "Method not found" ), req.id ),
+		  it );
 	}
 
 	void json_rpc_dispatch::add_method( std::string name,

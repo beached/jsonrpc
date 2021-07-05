@@ -88,17 +88,17 @@ namespace daw::json_rpc {
 					    args = from_json<details::json_rpc_server_request>( req.body );
 				    } catch( daw::json::json_exception const & ) {
 					    auto it = std::back_inserter( res.body );
-					    (void)to_json(
-					      json_rpc_response_error{ { -32700, "Error handling request" } },
-					      it );
+					    (void)to_json( json_rpc_response_error(
+					                     Error( -32700, "Error handling request" ) ),
+					                   it );
 					    res.code = 400;
 				    }
 				    dispatcher( args, res.body );
 			    } catch( ... ) {
 				    auto it = std::back_inserter( res.body );
-				    (void)to_json(
-				      json_rpc_response_error{ { -32603, "Error handling request" } },
-				      it );
+				    (void)to_json( json_rpc_response_error(
+				                     Error( -32603, "Error handling request" ) ),
+				                   it );
 				    res.code = 500;
 			    }
 			    res.end( );

@@ -11,7 +11,6 @@
 #include "json_rpc_server_request.h"
 
 #include <daw/json/daw_json_link.h>
-#include <daw/json/daw_json_value_state.h>
 
 #include <functional>
 #include <optional>
@@ -28,7 +27,8 @@ namespace daw::json_rpc {
 			auto it = std::back_inserter( buff );
 			if( not req.params and sizeof...( Parameters ) != 0 ) {
 				daw::json::to_json(
-				  json_rpc_response_error( { -32602, "Invalid params" }, req.id ), it );
+				  json_rpc_response_error( Error( -32602, "Invalid params" ), req.id ),
+				  it );
 				return;
 			}
 			try {
@@ -40,9 +40,9 @@ namespace daw::json_rpc {
 					}
 				} else {
 					if( not req.params ) {
-						daw::json::to_json(
-						  json_rpc_response_error{ { -32602, "Invalid params" }, req.id },
-						  it );
+						daw::json::to_json( json_rpc_response_error(
+						                      Error( -32602, "Invalid params" ), req.id ),
+						                    it );
 						return;
 					}
 				}
@@ -54,12 +54,13 @@ namespace daw::json_rpc {
 				daw::json::to_json( resp, it );
 			} catch( daw::json::json_exception const &je ) {
 				if( je.reason_type( ) == daw::json::ErrorReason::MissingMemberName ) {
-					daw::json::to_json(
-					  json_rpc_response_error{ { -32602, "Invalid params" }, req.id },
-					  it );
+					daw::json::to_json( json_rpc_response_error(
+					                      Error( -32602, "Invalid params" ), req.id ),
+					                    it );
 				}
 				daw::json::to_json(
-				  json_rpc_response_error{ { -32700, "Parse Error" }, req.id }, it );
+				  json_rpc_response_error( Error( -32700, "Parse Error" ), req.id ),
+				  it );
 			}
 		};
 	}
