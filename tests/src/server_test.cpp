@@ -6,8 +6,8 @@
 // Official repository: https://github.com/beached/jsonrpc
 //
 
-#include "daw/json_rpc/validate_email.h"
 #include "daw/json_rpc_server.h"
+#include "validate_email.h"
 
 #include <cstdint>
 #include <string_view>

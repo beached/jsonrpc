@@ -13,16 +13,13 @@ find_package(CURL CONFIG REQUIRED)
 find_path(CROW_INCLUDE_DIRS "crow.h")
 
 add_subdirectory(extern/)
+add_custom_target(full)
+add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 add_library(${PROJECT_NAME}
         src/json_rpc/json_rpc_dispatch.cpp
         src/json_rpc_server.cpp
         )
-
-add_compile_options(-Wall -Wextra -pedantic -Werror)
-
-add_custom_target(full)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE daw::daw-json-link Boost::headers Boost::system Boost::regex)
 target_include_directories(${PROJECT_NAME} PUBLIC include/ ${CROW_INCLUDE_DIRS})
 add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
