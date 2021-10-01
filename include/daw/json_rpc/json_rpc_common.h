@@ -22,6 +22,6 @@ namespace daw::json_rpc::details {
 	using id_json_map_type = daw::json::json_variant<
 	  id_json_mem_name, id_type,
 	  daw::json::json_variant_type_list<double, std::string>,
-	  daw::json::nullable_constructor<std::optional<id_type>>,
+	  daw::json::nullable_constructor<id_type>,
 	  daw::json::JsonNullable::NullVisible>;
 } // namespace daw::json_rpc::details

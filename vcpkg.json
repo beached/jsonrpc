@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "daw-jsonrpc",
+  "version": "0.1.0",
+  "dependencies": [
+    "boost-asio",
+    "boost-filesystem",
+    "boost-regex",
+    "boost-system",
+    {
+      "name": "curl",
+      "features": [
+        "ssl"
+      ]
+    },
+    "crow"
+  ]
+}
+
