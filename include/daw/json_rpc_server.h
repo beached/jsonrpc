@@ -53,8 +53,10 @@ namespace daw::json_rpc {
 		  std::function<void( crow::request const &, crow::response & )> handler )
 		  &;
 
-		json_rpc_server &route_path_to( std::string_view req_path_prefix,
-		                                std::filesystem::path fs_base );
+		json_rpc_server &
+		route_path_to( std::string_view req_path_prefix,
+		               std::filesystem::path fs_base,
+		               std::optional<std::string> default_file = { } ) &;
 
 		template<typename Result, typename Class>
 		json_rpc_server &route_path_to( std::string_view req_path,
@@ -70,9 +72,5 @@ namespace daw::json_rpc {
 
 		json_rpc_server &route_path_to( std::string_view req_path,
 		                                json_rpc_dispatch &dispatcher ) &;
-
-		json_rpc_server &
-		route_path_to( std::string_view req_path, std::string const &fs_path,
-		               std::optional<std::string_view> default_resource ) &;
 	};
 } // namespace daw::json_rpc

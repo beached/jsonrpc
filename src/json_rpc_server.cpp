@@ -123,21 +123,27 @@ namespace daw::json_rpc {
 
 	json_rpc_server &
 	json_rpc_server::route_path_to( std::string_view req_path_prefix,
-	                                std::filesystem::path fs_base ) {
+	                                std::filesystem::path fs_base,
+	                                std::optional<std::string> default_file ) & {
 		assert( fs_base != std::filesystem::path( ) );
 		get_ref( m_storage )
 		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
 		  .methods( crow::HTTPMethod::GET )(
-		    [req_path_prefix, fs_base = canonical( fs_base )](
-		      crow::request const &req, crow::response &res ) {
+		    [=, fs_base = canonical( fs_base )]( crow::request const &req,
+		                                         crow::response &res ) {
 			    auto rel_path = req.url.substr( req_path_prefix.size( ) );
 			    auto fs_path = canonical( ( fs_base / rel_path ) );
-			    if( not is_regular_file( fs_path ) or
-			        not is_base_of( fs_base, fs_path ) ) {
+			    if( not is_base_of( fs_base, fs_path ) ) {
 				    res = crow::response( 404 );
 				    return;
 			    }
-			    res.set_static_file_info( fs_path );
+			    if( is_regular_file( fs_path ) ) {
+				    res.set_static_file_info( fs_path );
+			    }
+			    if( default_file and is_directory( fs_path ) ) {
+				    res.set_static_file_info( fs_path / ( *default_file ) );
+			    }
+			    res = crow::response( 404 );
 		    } );
 		return *this;
 	}
@@ -146,17 +152,4 @@ namespace daw::json_rpc {
 		get_ref( m_storage ).server.stop( );
 		return *this;
 	}
-
-	json_rpc_server &json_rpc_server::route_path_to(
-	  std::string_view req_path, const std::string & /*fs_path*/,
-	  std::optional<std::string_view> /*default_resource*/ ) & {
-		get_ref( m_storage )
-		  .server.route_dynamic( static_cast<std::string>( req_path ) )
-		  .methods( crow::HTTPMethod::GET )(
-		    [&]( crow::request const & /*req*/, crow::response & /*res*/ ) {
-			    using namespace daw::json;
-		    } );
-		return *this;
-	}
-
 } // namespace daw::json_rpc
