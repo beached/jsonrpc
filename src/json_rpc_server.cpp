@@ -128,23 +128,27 @@ namespace daw::json_rpc {
 		assert( fs_base != std::filesystem::path( ) );
 		get_ref( m_storage )
 		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
-		  .methods( crow::HTTPMethod::GET )(
-		    [=, fs_base = canonical( fs_base )]( crow::request const &req,
-		                                         crow::response &res ) {
-			    auto rel_path = req.url.substr( req_path_prefix.size( ) );
-			    auto fs_path = canonical( ( fs_base / rel_path ) );
-			    if( not is_base_of( fs_base, fs_path ) ) {
-				    res = crow::response( 404 );
-				    return;
-			    }
-			    if( is_regular_file( fs_path ) ) {
-				    res.set_static_file_info( fs_path );
-			    }
-			    if( default_file and is_directory( fs_path ) ) {
-				    res.set_static_file_info( fs_path / ( *default_file ) );
-			    }
-			    res = crow::response( 404 );
-		    } );
+		  .methods( crow::HTTPMethod::GET )( [=, fs_base = canonical( fs_base )](
+		                                       crow::request const &req,
+		                                       crow::response &res ) -> void {
+			  try {
+				  auto rel_path = req.url.substr( req_path_prefix.size( ) );
+				  auto fs_path = canonical( ( fs_base / rel_path ) );
+				  if( not is_base_of( fs_base, fs_path ) ) {
+					  res = crow::response( 404 );
+				  } else if( is_regular_file( fs_path ) ) {
+					  res.set_static_file_info( fs_path );
+				  } else if( default_file and is_directory( fs_path ) ) {
+					  res.set_static_file_info( fs_path / ( *default_file ) );
+				  } else {
+					  res = crow::response( 404 );
+				  }
+			  } catch( std::exception const &ex ) {
+				  std::cerr << "Exception while processing file request: " << ex.what( )
+				            << '\n';
+				  res = crow::response( 500 );
+			  }
+		  } );
 		return *this;
 	}
 
