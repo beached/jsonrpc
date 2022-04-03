@@ -13,20 +13,4 @@ endif ()
 
 include(FetchContent)
 
-set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
-
-FetchContent_Declare(
-    daw_json_link
-    GIT_REPOSITORY https://github.com/beached/daw_json_link.git
-    GIT_TAG v4
-)
-
-FetchContent_Declare(
-    curl_wrapper
-    GIT_REPOSITORY https://github.com/beached/curl_wrapper.git
-    GIT_TAG master
-)
-
-FetchContent_MakeAvailable(daw_json_link curl_wrapper)
-
 

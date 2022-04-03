@@ -3,10 +3,6 @@ cmake_policy(SET CMP0065 NEW)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (CMAKE_BUILD_TYPE EQUAL "Debug")
-    add_compile_definitions(DEBUG=1)
-endif ()
-
 set(Boost_NO_WARN_NEW_VERSIONS ON)
 find_package(CURL CONFIG REQUIRED)
 find_package(Boost 1.78.0 COMPONENTS container)

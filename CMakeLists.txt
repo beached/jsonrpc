@@ -13,13 +13,13 @@ find_package(CURL CONFIG REQUIRED)
 find_path(CROW_INCLUDE_DIRS "crow.h")
 
 add_subdirectory(extern/)
-include_directories(include/ ${CROW_INCLUDE_DIRS})
-
+include_directories( include/ )
 add_library(${PROJECT_NAME}
         src/json_rpc/json_rpc_dispatch.cpp
         src/json_rpc_server.cpp
         )
-target_link_libraries(${PROJECT_NAME} PUBLIC daw::daw-json-link daw::daw-curl-wrapper Boost::headers Boost::system Boost::regex)
+target_link_libraries(${PROJECT_NAME} PRIVATE daw::daw-header-libraries daw::daw-json-link daw::daw-curl-wrapper Boost::headers Boost::system Boost::regex)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE_DIR} ${CROW_INCLUDE_DIRS})
 add_library(daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
@@ -29,11 +29,11 @@ include(GNUInstallDirs)
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         PRIVATE src)
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}_Targets
