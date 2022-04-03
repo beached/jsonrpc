@@ -126,11 +126,12 @@ namespace daw::json_rpc {
 	                                std::filesystem::path fs_base,
 	                                std::optional<std::string> default_file ) & {
 		assert( fs_base != std::filesystem::path( ) );
+		fs_base = canonical( fs_base );
+		assert( exists( fs_base ) and is_directory( fs_base ) );
 		get_ref( m_storage )
 		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
-		  .methods( crow::HTTPMethod::GET )( [=, fs_base = canonical( fs_base )](
-		                                       crow::request const &req,
-		                                       crow::response &res ) -> void {
+		  .methods( crow::HTTPMethod::GET )( [=]( crow::request const &req,
+		                                          crow::response &res ) -> void {
 			  try {
 				  auto rel_path = req.url.substr( req_path_prefix.size( ) );
 				  auto fs_path = canonical( ( fs_base / rel_path ) );
@@ -139,7 +140,12 @@ namespace daw::json_rpc {
 				  } else if( is_regular_file( fs_path ) ) {
 					  res.set_static_file_info( fs_path );
 				  } else if( default_file and is_directory( fs_path ) ) {
-					  res.set_static_file_info( fs_path / ( *default_file ) );
+					  auto f = fs_path / ( *default_file );
+					  if( exists( f ) ) {
+						  res.set_static_file_info( f );
+					  } else {
+							res = crow::response( 404 );
+					  }
 				  } else {
 					  res = crow::response( 404 );
 				  }
