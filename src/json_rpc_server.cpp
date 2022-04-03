@@ -17,6 +17,7 @@
 #include "daw/json_rpc/json_rpc_server_request.h"
 
 #include <daw/daw_construct_at.h>
+#include <daw/daw_memory_mapped_file.h>
 #include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
 
@@ -132,19 +133,33 @@ namespace daw::json_rpc {
 		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
 		  .methods( crow::HTTPMethod::GET )( [=]( crow::request const &req,
 		                                          crow::response &res ) -> void {
+			  if( req.method != crow::HTTPMethod::GET ) {
+				  res = crow::response( 404 );
+				  return;
+			  }
 			  try {
-				  auto rel_path = req.url.substr( req_path_prefix.size( ) );
-				  auto fs_path = canonical( ( fs_base / rel_path ) );
+				  auto rel_path =
+				    std::string_view( req.url ).substr( req_path_prefix.size( ) );
+				  if( rel_path.starts_with( '/' ) ) {
+					  rel_path.remove_prefix( 1 );
+				  }
+				  auto fs_path = canonical( fs_base / rel_path );
 				  if( not is_base_of( fs_base, fs_path ) ) {
 					  res = crow::response( 404 );
 				  } else if( is_regular_file( fs_path ) ) {
-					  res.set_static_file_info( fs_path );
+					  res.set_static_file_info( static_cast<std::string>( fs_path ) );
+					  auto mmf = daw::filesystem::memory_mapped_file_t(
+					    static_cast<std::string>( fs_path ) );
+					  res.body = std::string( std::data( mmf ), daw::data_end( mmf ) );
 				  } else if( default_file and is_directory( fs_path ) ) {
 					  auto f = fs_path / ( *default_file );
 					  if( exists( f ) ) {
 						  res.set_static_file_info( f );
+						  auto mmf = daw::filesystem::memory_mapped_file_t(
+						    static_cast<std::string>( f ) );
+						  res.body = std::string( std::data( mmf ), daw::data_end( mmf ) );
 					  } else {
-							res = crow::response( 404 );
+						  res = crow::response( 404 );
 					  }
 				  } else {
 					  res = crow::response( 404 );
