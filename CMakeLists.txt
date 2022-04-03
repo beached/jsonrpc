@@ -5,7 +5,7 @@ project(json_rpc
         HOMEPAGE_URL "https://github.com/beached/jsonrpc"
         LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(Boost_NO_WARN_NEW_VERSIONS ON)
 find_package(Boost COMPONENTS system regex filesystem REQUIRED)

@@ -88,7 +88,7 @@ int main( ) {
 		               ++count;
 		               return DAW_MOVE( u );
 	               } )
-	  .add_method( "add", []( int a, int b ) { return a + b; } )
+	  .add_method<int( int, int )>( "add", []( auto a, int b ) { return a + b; } )
 	  .add_method( "status", [&]( ) { return count; } )
 	  .add_method( "inc_count", [&]( ) { return count++; } );
 

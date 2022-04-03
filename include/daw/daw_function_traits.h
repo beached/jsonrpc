@@ -29,8 +29,7 @@ namespace daw::func {
 
 	// function pointer
 	template<class R, class... Args>
-	struct function_traits<R ( * )( Args... )>
-	  : public function_traits<R( Args... )> {};
+	struct function_traits<R ( * )( Args... )> : function_traits<R( Args... )> {};
 
 	template<class R, class... Args>
 	struct function_traits<R( Args... )> {
@@ -49,16 +48,16 @@ namespace daw::func {
 	// member function pointer
 	template<class C, class R, class... Args>
 	struct function_traits<R ( C::* )( Args... )>
-	  : public function_traits<R( C &, Args... )> {};
+	  : function_traits<R( C &, Args... )> {};
 
 	// const member function pointer
 	template<class C, class R, class... Args>
 	struct function_traits<R ( C::* )( Args... ) const>
-	  : public function_traits<R( C &, Args... )> {};
+	  : function_traits<R( C &, Args... )> {};
 
 	// member object pointer
 	template<class C, class R>
-	struct function_traits<R( C::* )> : public function_traits<R( C & )> {};
+	struct function_traits<R( C::* )> : function_traits<R( C & )> {};
 
 	// functor
 	template<class F>

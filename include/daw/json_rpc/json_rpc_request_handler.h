@@ -24,6 +24,7 @@ namespace daw::json_rpc {
 	callback_type make_callback( Callback &&c ) {
 		return [c = DAW_FWD( c )]( details::json_rpc_server_request req,
 		                           std::string &buff ) -> void {
+
 			auto it = std::back_inserter( buff );
 			if( not req.params and sizeof...( Parameters ) != 0 ) {
 				daw::json::to_json(

@@ -18,7 +18,7 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
 FetchContent_Declare(
     daw_json_link
     GIT_REPOSITORY https://github.com/beached/daw_json_link.git
-    GIT_TAG develop
+    GIT_TAG v4
 )
 
 FetchContent_Declare(

@@ -118,13 +118,13 @@ namespace daw::json_rpc {
 	}
 
 	json_rpc_server &json_rpc_server::route_path_to(
-	  std::string_view req_path, const std::string &fs_path,
-	  std::optional<std::string_view> default_resource ) & {
+	  std::string_view req_path, const std::string &/*fs_path*/,
+	  std::optional<std::string_view> /*default_resource*/ ) & {
 
 		get_ref( m_storage )
 		  .server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( crow::HTTPMethod::GET )(
-		    [&]( crow::request const &req, crow::response &res ) {
+		    [&]( crow::request const & /*req*/, crow::response & /*res*/ ) {
 			    using namespace daw::json;
 		    } );
 		return *this;

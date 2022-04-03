@@ -25,7 +25,7 @@ namespace daw::json_rpc::details {
 	struct json_rpc_server_request {
 		std::string_view jsonrpc = "2.0";
 		std::string method{ };
-		std::optional<daw::json::json_value> params{ };
+		std::optional<daw::json::json_value<>> params{ };
 		details::id_type id{ };
 	};
 
