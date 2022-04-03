@@ -20,7 +20,8 @@
 #include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
 
-#include <boost/filesystem.hpp>
+#include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -64,7 +65,7 @@ namespace daw::json_rpc {
 	}
 
 	json_rpc_server &json_rpc_server::route_path_to(
-	  std::string_view req_path, std::string_view method,
+	  std::string_view req_path, std::string const &method,
 	  std::function<void( const crow::request &, crow::response & )> handler ) & {
 
 		get_ref( m_storage )
@@ -112,15 +113,43 @@ namespace daw::json_rpc {
 		return *this;
 	}
 
+	inline bool is_base_of( std::filesystem::path const &base,
+	                        std::filesystem::path const &path ) {
+		assert( is_directory( base ) );
+		return std::mismatch( base.begin( ), base.end( ), path.begin( ),
+		                      path.end( ) )
+		         .first == base.end( );
+	} // namespace
+
+	json_rpc_server &
+	json_rpc_server::route_path_to( std::string_view req_path_prefix,
+	                                std::filesystem::path fs_base ) {
+		assert( fs_base != std::filesystem::path( ) );
+		get_ref( m_storage )
+		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
+		  .methods( crow::HTTPMethod::GET )(
+		    [req_path_prefix, fs_base = canonical( fs_base )](
+		      crow::request const &req, crow::response &res ) {
+			    auto rel_path = req.url.substr( req_path_prefix.size( ) );
+			    auto fs_path = canonical( ( fs_base / rel_path ) );
+			    if( not is_regular_file( fs_path ) or
+			        not is_base_of( fs_base, fs_path ) ) {
+				    res = crow::response( 404 );
+				    return;
+			    }
+			    res.set_static_file_info( fs_path );
+		    } );
+		return *this;
+	}
+
 	json_rpc_server &json_rpc_server::stop( ) & {
 		get_ref( m_storage ).server.stop( );
 		return *this;
 	}
 
 	json_rpc_server &json_rpc_server::route_path_to(
-	  std::string_view req_path, const std::string &/*fs_path*/,
+	  std::string_view req_path, const std::string & /*fs_path*/,
 	  std::optional<std::string_view> /*default_resource*/ ) & {
-
 		get_ref( m_storage )
 		  .server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( crow::HTTPMethod::GET )(
