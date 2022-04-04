@@ -130,9 +130,8 @@ namespace daw::json_rpc {
 		fs_base = canonical( fs_base );
 		assert( exists( fs_base ) and is_directory( fs_base ) );
 		get_ref( m_storage )
-		  .server.route_dynamic( static_cast<std::string>( req_path_prefix ) )
-		  .methods( crow::HTTPMethod::GET )( [=]( crow::request const &req,
-		                                          crow::response &res ) -> void {
+		  .server.catchall_route( )( [=]( crow::request const &req,
+		                                  crow::response &res ) -> void {
 			  if( req.method != crow::HTTPMethod::GET ) {
 				  res = crow::response( 404 );
 				  return;
