@@ -22,7 +22,8 @@
 #include <daw/json/daw_json_link.h>
 
 #include <algorithm>
-#include <crow.h>
+#include <crow/http_request.h>
+#include <crow/http_response.h>
 #include <crow/middlewares/cookie_parser.h>
 #include <filesystem>
 #include <memory>
@@ -182,5 +183,10 @@ namespace daw::json_rpc {
 	json_rpc_server &json_rpc_server::stop( ) & {
 		get_ref( m_storage ).server.stop( );
 		return *this;
+	}
+
+	json_rpc_server::cookie_t &
+	json_rpc_server::get_cookie_context( crow::request const &req ) {
+		return get_ref( m_storage ).server.get_context<crow::CookieParser>( req );
 	}
 } // namespace daw::json_rpc
