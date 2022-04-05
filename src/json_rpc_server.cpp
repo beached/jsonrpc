@@ -22,6 +22,8 @@
 #include <daw/json/daw_json_link.h>
 
 #include <algorithm>
+#include <crow.h>
+#include <crow/middlewares/cookie_parser.h>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -30,7 +32,7 @@
 namespace daw::json_rpc {
 	inline namespace {
 		struct impl_t {
-			crow::SimpleApp server{ };
+			crow::App<crow::CookieParser> server{ };
 		};
 
 		inline constexpr auto get_ref =
