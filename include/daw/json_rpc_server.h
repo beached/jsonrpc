@@ -11,6 +11,7 @@
 #include "crow/http_request.h"
 #include "crow/http_response.h"
 #include "crow/middlewares/cookie_parser.h"
+#include <crow.h>
 
 #include "json_rpc/json_rpc_dispatch.h"
 
@@ -23,7 +24,7 @@
 
 namespace daw::json_rpc {
 	struct json_rpc_server {
-		using storage_t = std::aligned_storage_t<1024, 64>;
+		using storage_t = std::aligned_storage_t<3376, 64>;
 		using cookie_t = typename crow::CookieParser::context;
 
 	private:
