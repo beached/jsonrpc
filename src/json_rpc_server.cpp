@@ -8,9 +8,6 @@
 #define CROW_MAIN
 
 #include "daw/json_rpc_server.h"
-#include "crow/app.h"
-#include "crow/http_request.h"
-#include "crow/http_response.h"
 #include "daw/daw_storage_ref.h"
 #include "daw/json_rpc/json_rpc_dispatch.h"
 #include "daw/json_rpc/json_rpc_request_json.h"
@@ -22,8 +19,7 @@
 #include <daw/json/daw_json_link.h>
 
 #include <algorithm>
-#include <crow/http_request.h>
-#include <crow/http_response.h>
+#include <crow.h>
 #include <crow/middlewares/cookie_parser.h>
 #include <filesystem>
 #include <memory>
@@ -31,37 +27,20 @@
 #include <string_view>
 
 namespace daw::json_rpc {
-	inline namespace {
-		struct impl_t {
-			crow::App<crow::CookieParser> server{ };
-		};
-
-		inline constexpr auto get_ref =
-		  daw::storage_ref<impl_t, json_rpc_server::storage_t>{ };
-	} // namespace
-
 	json_rpc_server::json_rpc_server( ) {
-		static_assert( sizeof( impl_t ) <= sizeof( storage_t ) );
-		daw::construct_at<impl_t>( &m_storage );
-
 #if defined( NDEBUG )
-		get_ref( m_storage ).server.loglevel( crow::LogLevel::Warning );
+		server.loglevel( crow::LogLevel::Warning );
 #endif
 	}
 
-	json_rpc_server::~json_rpc_server( ) {
-		std::destroy_at( &get_ref( m_storage ) );
-	}
-
 	json_rpc_server &json_rpc_server::listen( std::uint16_t port ) & {
-		get_ref( m_storage ).server.port( port ).multithreaded( ).run( );
+		server.port( port ).multithreaded( ).run( );
 		return *this;
 	}
 
 	json_rpc_server &json_rpc_server::listen( std::string_view host,
 	                                          std::uint16_t port ) & {
-		get_ref( m_storage )
-		  .server.bindaddr( static_cast<std::string>( host ) )
+		server.bindaddr( static_cast<std::string>( host ) )
 		  .port( port )
 		  .multithreaded( )
 		  .run( );
@@ -72,8 +51,7 @@ namespace daw::json_rpc {
 	  std::string_view req_path, std::string const &method,
 	  std::function<void( const crow::request &, crow::response & )> handler ) & {
 
-		get_ref( m_storage )
-		  .server.route_dynamic( static_cast<std::string>( req_path ) )
+		server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( operator""_method( method.data( ), method.size( ) ) )(
 		    DAW_MOVE( handler ) );
 		return *this;
@@ -82,8 +60,7 @@ namespace daw::json_rpc {
 	json_rpc_server &
 	json_rpc_server::route_path_to( std::string_view req_path,
 	                                json_rpc_dispatch &dispatcher ) & {
-		get_ref( m_storage )
-		  .server.route_dynamic( static_cast<std::string>( req_path ) )
+		server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( crow::HTTPMethod::POST )(
 		    [&dispatcher]( crow::request const &req, crow::response &res ) {
 			    using namespace daw::json;
@@ -132,9 +109,8 @@ namespace daw::json_rpc {
 		assert( fs_base != std::filesystem::path( ) );
 		assert( exists( fs_base ) and is_directory( fs_base ) );
 		fs_base = canonical( fs_base );
-		get_ref( m_storage )
-		  .server.catchall_route( )( [=]( crow::request const &req,
-		                                  crow::response &res ) -> void {
+		server.catchall_route( )(
+		  [=]( crow::request const &req, crow::response &res ) -> void {
 			  if( req.method != crow::HTTPMethod::GET ) {
 				  res = crow::response( 404 );
 				  return;
@@ -181,12 +157,12 @@ namespace daw::json_rpc {
 	}
 
 	json_rpc_server &json_rpc_server::stop( ) & {
-		get_ref( m_storage ).server.stop( );
+		server.stop( );
 		return *this;
 	}
 
 	json_rpc_server::cookie_t &
 	json_rpc_server::get_cookie_context( crow::request const &req ) {
-		return get_ref( m_storage ).server.get_context<crow::CookieParser>( req );
+		return server.get_context<crow::CookieParser>( req );
 	}
 } // namespace daw::json_rpc

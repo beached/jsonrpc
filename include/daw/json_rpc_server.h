@@ -8,12 +8,10 @@
 
 #pragma once
 
-#include "crow/http_request.h"
-#include "crow/http_response.h"
-#include "crow/middlewares/cookie_parser.h"
-#include <crow.h>
-
 #include "json_rpc/json_rpc_dispatch.h"
+
+#include <crow.h>
+#include <crow/middlewares/cookie_parser.h>
 
 #include <cstdint>
 #include <filesystem>
@@ -28,12 +26,12 @@ namespace daw::json_rpc {
 		using cookie_t = typename crow::CookieParser::context;
 
 	private:
-		storage_t m_storage{ };
+		crow::App<crow::CookieParser> server{ };
 
 	public:
 		json_rpc_server( );
-		~json_rpc_server( );
 
+		~json_rpc_server( ) = default;
 		json_rpc_server( json_rpc_server &&other ) = delete;
 		json_rpc_server &operator=( json_rpc_server &&rhs ) = delete;
 		json_rpc_server( json_rpc_server const & ) = delete;
