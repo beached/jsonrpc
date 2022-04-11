@@ -6,8 +6,8 @@
 // Official repository: https://github.com/beached/jsonrpc
 //
 
-#include <daw/json_rpc_server.h>
 #include "validate_email.h"
+#include <daw/json_rpc_server.h>
 
 #include <cstdint>
 #include <string_view>
@@ -92,6 +92,7 @@ int main( ) {
 	  .add_method( "status", [&]( ) { return count; } )
 	  .add_method( "inc_count", [&]( ) { return count++; } );
 
+	using namespace daw::json_rpc::ws_opts;
 	auto server = daw::json_rpc::json_rpc_server( );
 	server.route_path_to( "/", dispatcher )
 	  .route_path_to( "/add", "GET",
@@ -104,5 +105,9 @@ int main( ) {
 		                  res.end( );
 		                  server.stop( );
 	                  } )
+	  .websocket(
+	    "/file_upload",
+	    on_ws_open =
+	      []( crow::websocket::connection &con ) { con.close( "done" ); } )
 	  .listen( 1234 );
 }
