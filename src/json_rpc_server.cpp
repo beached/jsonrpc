@@ -165,4 +165,8 @@ namespace daw::json_rpc {
 	json_rpc_server::get_cookie_context( crow::request const &req ) {
 		return server.get_context<crow::CookieParser>( req );
 	}
+
+	crow::WebSocketRule & json_rpc_server::websocket( std::string_view req_path ) {
+		return server.route_dynamic( static_cast<std::string>( req_path ) ).websocket();
+	}
 } // namespace daw::json_rpc

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 project(daw-jsonrpc
-        VERSION "0.3.0"
+        VERSION "0.4.0"
         DESCRIPTION "Generic JSON RPC Server"
         HOMEPAGE_URL "https://github.com/beached/jsonrpc"
         LANGUAGES C CXX)

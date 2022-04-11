@@ -74,6 +74,8 @@ namespace daw::json_rpc {
 		json_rpc_server &route_path_to( std::string_view req_path,
 		                                json_rpc_dispatch &dispatcher ) &;
 
+		crow::WebSocketRule &websocket( std::string_view req_path );
+
 		cookie_t &get_cookie_context( crow::request const &req );
 	};
 } // namespace daw::json_rpc
