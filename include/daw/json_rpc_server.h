@@ -38,67 +38,110 @@ namespace daw::json_rpc {
 			}
 		}
 
-		template<template<typename...> typename Result>
-		struct named_ws_arg {
-			using i_am_an_option = void;
-			template<not_me<named_ws_arg> Func>
-			requires( requires( Func &&f ) { Result<Func>{ DAW_FWD( f ) }; } ) //
-			  constexpr auto
-			  operator=( Func &&f ) const {
-				return Result<Func>{ DAW_FWD( f ) };
-			}
+		struct on_ws_accept_default_t {
+			bool operator( )( crow::request const & ) const;
 		};
-
-		template<invocable_result<bool, crow::request const &> Func>
-		struct on_ws_accept_t {
+		template<invocable_result<bool, crow::request const &> Func =
+		           on_ws_accept_default_t>
+		struct on_ws_accept_t : Func {
 			using i_am_an_option = void;
 			using accept_arg = void;
-			Func f;
+			using Func::operator( );
+
+			constexpr auto operator=(
+			  invocable_result<bool, crow::request const &> auto &&f ) const {
+				return DAW_FWD( f );
+			}
 		};
 		template<typename T>
 		  struct find_accept_arg : std::bool_constant < requires {
 			typename T::accept_arg;
 		} > { };
 
-		template<invocable<crow::websocket::connection &> Func>
+		struct on_ws_open_default_t {
+			void operator( )( crow::websocket::connection & ) const;
+		};
+		template<invocable<crow::websocket::connection &> Func =
+		           on_ws_open_default_t>
 		struct on_ws_open_t : Func {
 			using i_am_an_option = void;
 			using open_arg = void;
 			using Func::operator( );
+
+			/// \brief Create an onopen callback
+			/// \param f Callback with signature void( crow::websocket::connection & )
+			/// \return Wrapped callback
+			constexpr auto
+			operator=( invocable<crow::websocket::connection &> auto &&f ) const {
+				return on_ws_open_t<std::remove_cvref_t<decltype( f )>>{ DAW_FWD( f ) };
+			}
 		};
 		template<typename T>
 		  struct find_open_arg : std::bool_constant < requires {
 			typename T::open_arg;
 		} > { };
 
-		template<
-		  invocable<crow::websocket::connection &, std::string const &, bool> Func>
+		struct on_ws_message_default_t {
+			void operator( )( crow::websocket::connection &, std::string const &,
+			                  bool ) const;
+		};
+		template<invocable<crow::websocket::connection &, std::string const &, bool>
+		           Func = on_ws_message_default_t>
 		struct on_ws_message_t : Func {
 			using i_am_an_option = void;
 			using message_arg = void;
 			using Func::operator( );
+
+			constexpr auto operator=(
+			  invocable<crow::websocket::connection &, std::string const &, bool> auto
+			    &&f ) const {
+				return on_ws_message_t<std::remove_cvref_t<decltype( f )>>{
+				  DAW_FWD( f ) };
+			}
 		};
 		template<typename T>
 		  struct find_message_arg : std::bool_constant < requires {
 			typename T::message_arg;
 		} > { };
 
-		template<invocable<crow::websocket::connection &> Func>
+		struct on_ws_error_default_t {
+			void operator( )( crow::websocket::connection & ) const;
+		};
+		template<invocable<crow::websocket::connection &> Func =
+		           on_ws_error_default_t>
 		struct on_ws_error_t : Func {
 			using i_am_an_option = void;
 			using error_arg = void;
 			using Func::operator( );
+
+			constexpr auto
+			operator=( invocable<crow::websocket::connection &> auto &&f ) const {
+				return on_ws_error_t<std::remove_cvref_t<decltype( f )>>{
+				  DAW_FWD( f ) };
+			}
 		};
 		template<typename T>
 		  struct find_error_arg : std::bool_constant < requires {
 			typename T::error_arg;
 		} > { };
 
-		template<invocable<crow::websocket::connection &, std::string const &> Func>
+		struct on_ws_close_default_t {
+			void operator( )( crow::websocket::connection &,
+			                  std::string const & ) const;
+		};
+		template<invocable<crow::websocket::connection &, std::string const &>
+		           Func = on_ws_close_default_t>
 		struct on_ws_close_t : Func {
 			using i_am_an_option = void;
 			using close_arg = void;
 			using Func::operator( );
+
+			constexpr auto operator=(
+			  invocable<crow::websocket::connection &, std::string const &> auto &&f )
+			  const {
+				return on_ws_close_t<std::remove_cvref_t<decltype( f )>>{
+				  DAW_FWD( f ) };
+			}
 		};
 
 		template<typename T>
@@ -113,16 +156,11 @@ namespace daw::json_rpc {
 	};
 
 	inline namespace ws_opts {
-		inline constexpr auto on_ws_accept =
-		  impl::named_ws_arg<impl::on_ws_accept_t>{ };
-		inline constexpr auto on_ws_open =
-		  impl::named_ws_arg<impl::on_ws_open_t>{ };
-		inline constexpr auto on_ws_message =
-		  impl::named_ws_arg<impl::on_ws_message_t>{ };
-		inline constexpr auto on_ws_error =
-		  impl::named_ws_arg<impl::on_ws_error_t>{ };
-		inline constexpr auto on_ws_close =
-		  impl::named_ws_arg<impl::on_ws_close_t>{ };
+		inline constexpr auto on_ws_accept = impl::on_ws_accept_t<>{ };
+		inline constexpr auto on_ws_open = impl::on_ws_open_t<>{ };
+		inline constexpr auto on_ws_message = impl::on_ws_message_t<>{ };
+		inline constexpr auto on_ws_error = impl::on_ws_error_t<>{ };
+		inline constexpr auto on_ws_close = impl::on_ws_close_t<>{ };
 	} // namespace ws_opts
 
 	struct json_rpc_server {

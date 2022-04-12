@@ -108,6 +108,10 @@ int main( ) {
 	  .websocket(
 	    "/file_upload",
 	    on_ws_open =
-	      []( crow::websocket::connection &con ) { con.close( "done" ); } )
+	      []( crow::websocket::connection &con ) { con.close( "done" ); },
+	    on_ws_close =
+	      []( crow::websocket::connection &, std::string const &message ) {
+		      std::cerr << message << '\n';
+	      } )
 	  .listen( 1234 );
 }
