@@ -92,7 +92,6 @@ int main( ) {
 	  .add_method( "status", [&]( ) { return count; } )
 	  .add_method( "inc_count", [&]( ) { return count++; } );
 
-	using namespace daw::json_rpc::ws_opts;
 	auto server = daw::json_rpc::json_rpc_server( );
 	server.route_path_to( "/", dispatcher )
 	  .route_path_to( "/add", "GET",
@@ -107,11 +106,11 @@ int main( ) {
 	                  } )
 	  .websocket(
 	    "/file_upload",
-	    on_ws_open =
-	      []( crow::websocket::connection &con ) { con.close( "done" ); },
-	    on_ws_close =
-	      []( crow::websocket::connection &, std::string const &message ) {
-		      std::cerr << message << '\n';
-	      } )
+	    { .on_open =
+	        []( crow::websocket::connection &con ) { con.close( "done" ); },
+	      .on_close =
+	        []( crow::websocket::connection &, std::string const &message ) {
+		        std::cerr << message << '\n';
+	        } } )
 	  .listen( 1234 );
 }
