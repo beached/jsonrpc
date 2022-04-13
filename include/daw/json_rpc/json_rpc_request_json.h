@@ -24,7 +24,7 @@ namespace daw::json {
 
 	template<>
 	struct json_data_contract<daw::json_rpc::details::json_rpc_server_request> {
-		using type = json_member_list<json_link<mem_jsonrpc, std::string_view>,
+		using type = json_member_list<json_link<mem_jsonrpc, daw::string_view>,
 		                              json_link<mem_method, std::string>,
 		                              json_raw_null<mem_params>,
 		                              daw::json_rpc::details::id_json_map_type>;
@@ -39,7 +39,7 @@ namespace daw::json {
 	template<typename... Ts>
 	struct json_data_contract<
 	  daw::json_rpc::details::json_rpc_client_request<Ts...>> {
-		using type = json_member_list<json_link<mem_jsonrpc, std::string_view>,
+		using type = json_member_list<json_link<mem_jsonrpc, daw::string_view>,
 		                              json_link<mem_method, std::string>,
 		                              json_link<mem_params, std::tuple<Ts...>>,
 		                              daw::json_rpc::details::id_json_map_type>;

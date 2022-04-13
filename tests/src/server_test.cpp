@@ -20,7 +20,7 @@ struct User {
 	std::string password;
 };
 
-std::string_view validate( User const &u ) {
+daw::string_view validate( User const &u ) {
 	if( not is_valid_email( u.email ) ) {
 		return "invalid email";
 	}

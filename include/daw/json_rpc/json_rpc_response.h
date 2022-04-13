@@ -109,7 +109,7 @@ namespace daw::json {
 
 		static inline auto
 		to_json_data( daw::json_rpc::json_rpc_response_error<Data> const &v ) {
-			static constexpr std::string_view jsonrpc = "2.0";
+			static constexpr daw::string_view jsonrpc = "2.0";
 			return std::forward_as_tuple( jsonrpc, v.error, v.id );
 		}
 	};
@@ -127,7 +127,7 @@ namespace daw::json_rpc {
 		  : result( DAW_FWD( result ) )
 		  , id( DAW_MOVE( Id ) ) {}
 
-		inline json_rpc_response_result( std::string_view /*rpc_ver*/, Result &&r,
+		inline json_rpc_response_result( daw::string_view /*rpc_ver*/, Result &&r,
 		                                 details::id_type &&Id )
 		  : result( DAW_MOVE( r ) )
 		  , id( DAW_MOVE( Id ) ) {}
@@ -145,13 +145,13 @@ namespace daw::json {
 		static constexpr char const mem_jsonrpc[] = "jsonrpc";
 		static constexpr char const mem_result[] = "result";
 
-		using type = json_member_list<json_link<mem_jsonrpc, std::string_view>,
+		using type = json_member_list<json_link<mem_jsonrpc, daw::string_view>,
 		                              json_link<mem_result, Result>,
 		                              daw::json_rpc::details::id_json_map_type>;
 
 		static inline auto to_json_data(
 		  daw::json_rpc::json_rpc_response_result<Result> const &value ) {
-			static constexpr std::string_view jsonrpc = "2.0";
+			static constexpr daw::string_view jsonrpc = "2.0";
 			return std::forward_as_tuple( jsonrpc, value.result, value.id );
 		}
 	};

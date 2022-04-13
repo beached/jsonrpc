@@ -16,6 +16,7 @@
 #include <daw/daw_construct_at.h>
 #include <daw/daw_memory_mapped_file.h>
 #include <daw/daw_move.h>
+#include <daw/daw_string_view.h>
 #include <daw/json/daw_json_link.h>
 
 #include <algorithm>
@@ -24,7 +25,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
-#include <string_view>
+#include <string>
 
 namespace daw::json_rpc {
 	json_rpc_server::json_rpc_server( ) {
@@ -38,7 +39,7 @@ namespace daw::json_rpc {
 		return *this;
 	}
 
-	json_rpc_server &json_rpc_server::listen( std::string_view host,
+	json_rpc_server &json_rpc_server::listen( daw::string_view host,
 	                                          std::uint16_t port ) & {
 		server.bindaddr( static_cast<std::string>( host ) )
 		  .port( port )
@@ -48,7 +49,7 @@ namespace daw::json_rpc {
 	}
 
 	json_rpc_server &json_rpc_server::route_path_to(
-	  std::string_view req_path, std::string const &method,
+	  daw::string_view req_path, std::string const &method,
 	  std::function<void( const crow::request &, crow::response & )> handler ) & {
 
 		server.route_dynamic( static_cast<std::string>( req_path ) )
@@ -58,7 +59,7 @@ namespace daw::json_rpc {
 	}
 
 	json_rpc_server &
-	json_rpc_server::route_path_to( std::string_view req_path,
+	json_rpc_server::route_path_to( daw::string_view req_path,
 	                                json_rpc_dispatch &dispatcher ) & {
 		server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( crow::HTTPMethod::POST )(
@@ -103,7 +104,7 @@ namespace daw::json_rpc {
 	} // namespace
 
 	json_rpc_server &
-	json_rpc_server::route_path_to( std::string_view req_path_prefix,
+	json_rpc_server::route_path_to( daw::string_view req_path_prefix,
 	                                std::filesystem::path fs_base,
 	                                std::optional<std::string> default_file ) & {
 		assert( fs_base != std::filesystem::path( ) );
@@ -117,11 +118,13 @@ namespace daw::json_rpc {
 			  }
 			  try {
 				  auto rel_path =
-				    std::string_view( req.url ).substr( req_path_prefix.size( ) );
+				    daw::string_view( req.url ).substr( req_path_prefix.size( ) );
 				  if( rel_path.starts_with( '/' ) ) {
 					  rel_path.remove_prefix( 1 );
 				  }
-				  auto fs_path = fs_base / rel_path;
+				  auto rel_path_str = static_cast<std::string>( rel_path );
+				  crow::utility::sanitize_filename( rel_path_str );
+				  auto fs_path = fs_base / rel_path_str;
 				  if( not exists( fs_path ) ) {
 					  res = crow::response( 404 );
 					  return;
@@ -130,14 +133,14 @@ namespace daw::json_rpc {
 				  if( not is_base_of( fs_base, fs_path ) ) {
 					  res = crow::response( 404 );
 				  } else if( is_regular_file( fs_path ) ) {
-					  res.set_static_file_info( static_cast<std::string>( fs_path ) );
+					  res.set_static_file_info_unsafe( static_cast<std::string>( fs_path ) );
 					  auto mmf = daw::filesystem::memory_mapped_file_t(
 					    static_cast<std::string>( fs_path ) );
 					  res.body = std::string( std::data( mmf ), daw::data_end( mmf ) );
 				  } else if( default_file and is_directory( fs_path ) ) {
 					  auto f = fs_path / ( *default_file );
 					  if( exists( f ) ) {
-						  res.set_static_file_info( f );
+						  res.set_static_file_info_unsafe( f );
 						  auto mmf = daw::filesystem::memory_mapped_file_t(
 						    static_cast<std::string>( f ) );
 						  res.body = std::string( std::data( mmf ), daw::data_end( mmf ) );

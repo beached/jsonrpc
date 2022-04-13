@@ -12,6 +12,7 @@
 
 #include <daw/daw_concepts.h>
 #include <daw/daw_move.h>
+#include <daw/daw_string_view.h>
 
 #include <crow.h>
 #include <crow/middlewares/cookie_parser.h>
@@ -19,7 +20,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
-#include <string_view>
+#include <string>
 #include <type_traits>
 
 namespace daw::json_rpc {
@@ -57,23 +58,23 @@ namespace daw::json_rpc {
 		/// @brief Start listening for network connections on specified port/host
 		/// @param host Bind to the specified host
 		/// @param port Network port to listen for connections on
-		json_rpc_server &listen( std::string_view host, std::uint16_t port ) &;
+		json_rpc_server &listen( daw::string_view host, std::uint16_t port ) &;
 
 		/// @brief Stop listening for connections and terminate existing connections
 		json_rpc_server &stop( ) &;
 
 		json_rpc_server &route_path_to(
-		  std::string_view req_path, std::string const &method,
+		  daw::string_view req_path, std::string const &method,
 		  std::function<void( crow::request const &, crow::response & )> handler )
 		  &;
 
 		json_rpc_server &
-		route_path_to( std::string_view req_path_prefix,
+		route_path_to( daw::string_view req_path_prefix,
 		               std::filesystem::path fs_base,
 		               std::optional<std::string> default_file = { } ) &;
 
 		template<typename Result, typename Class>
-		json_rpc_server &route_path_to( std::string_view req_path,
+		json_rpc_server &route_path_to( daw::string_view req_path,
 		                                std::string const &method,
 		                                Result Class::*pm, Class &obj ) & {
 
@@ -84,10 +85,10 @@ namespace daw::json_rpc {
 			  } );
 		}
 
-		json_rpc_server &route_path_to( std::string_view req_path,
+		json_rpc_server &route_path_to( daw::string_view req_path,
 		                                json_rpc_dispatch &dispatcher ) &;
 
-		json_rpc_server &websocket( std::string_view req_path,
+		json_rpc_server &websocket( daw::string_view req_path,
 		                            websocket_options opts ) {
 			auto &ws = server.route_dynamic( static_cast<std::string>( req_path ) )
 			             .websocket( );

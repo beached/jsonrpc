@@ -23,7 +23,7 @@ namespace daw::json_rpc::details {
 	// First it parses enough to determine the method requested and then passes
 	// the params to the handler to parse
 	struct json_rpc_server_request {
-		std::string_view jsonrpc = "2.0";
+		daw::string_view jsonrpc = "2.0";
 		std::string method{ };
 		std::optional<daw::json::json_value<>> params{ };
 		details::id_type id{ };
@@ -32,13 +32,13 @@ namespace daw::json_rpc::details {
 	// This is the client request sent to the server to process
 	template<typename... Ts>
 	struct json_rpc_client_request {
-		std::string_view jsonrpc = "2.0";
+		daw::string_view jsonrpc = "2.0";
 		std::string method{ };
 		std::tuple<Ts...> params;
 		details::id_type id{ };
 
 		json_rpc_client_request(
-		  std::string_view Method, std::tuple<Ts...> args,
+		  daw::string_view Method, std::tuple<Ts...> args,
 		  std::optional<std::variant<double, std::string>> Id = { } )
 		  : method( static_cast<std::string>( Method ) )
 		  , params{ DAW_MOVE( args ) }
@@ -46,7 +46,7 @@ namespace daw::json_rpc::details {
 
 		/// Constructor used by serialization library
 		json_rpc_client_request(
-		  std::string_view jsonRpc, std::string_view Method,
+		  daw::string_view jsonRpc, daw::string_view Method,
 		  std::tuple<Ts...> Params,
 		  std::optional<std::variant<double, std::string>> Id )
 		  : jsonrpc( jsonRpc )
@@ -55,6 +55,6 @@ namespace daw::json_rpc::details {
 		  , id( DAW_MOVE( Id ) ) {}
 	};
 	template<typename... Ts>
-	json_rpc_client_request( std::string_view, std::tuple<Ts...>,
+	json_rpc_client_request( daw::string_view, std::tuple<Ts...>,
 	                         details::id_type ) -> json_rpc_client_request<Ts...>;
 } // namespace daw::json_rpc::details

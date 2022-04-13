@@ -8,6 +8,6 @@
 
 #pragma once
 
-#include <string_view>
+#include <daw/daw_string_view.h>
 
-bool is_valid_email( std::string_view address );
+bool is_valid_email( daw::string_view address );
