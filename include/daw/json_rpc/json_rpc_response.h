@@ -47,8 +47,8 @@ namespace daw::json_rpc {
 		  , data( DAW_MOVE( d ) ) {}
 	};
 
-	Error( int ) -> Error<daw::json::json_value<>>;
-	Error( int, std::string ) -> Error<daw::json::json_value<>>;
+	Error( int ) -> Error<daw::json::json_value>;
+	Error( int, std::string ) -> Error<daw::json::json_value>;
 
 	template<typename Data>
 	Error( int, std::string, Data ) -> Error<Data>;
@@ -160,7 +160,7 @@ namespace daw::json {
 namespace daw::json_rpc::json_rpc_response_details {
 	struct response_switcher {
 		constexpr std::size_t
-		operator( )( std::optional<daw::json::json_value<>> const &v ) const {
+		operator( )( std::optional<daw::json::json_value> const &v ) const {
 			if( v ) {
 				// There is a error member, so we are the error alternative
 				return 1;
@@ -181,7 +181,7 @@ namespace daw::json_rpc::json_rpc_response_details {
 } // namespace daw::json_rpc::json_rpc_response_details
 
 namespace daw::json_rpc {
-	template<typename T, typename ErrorData = daw::json::json_value<>>
+	template<typename T, typename ErrorData = daw::json::json_value>
 	class json_rpc_response {
 		std::variant<json_rpc_response_result<T>,
 		             json_rpc_response_error<ErrorData>>

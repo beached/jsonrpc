@@ -22,7 +22,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     daw_json_link
     GIT_REPOSITORY https://github.com/beached/daw_json_link.git
-    GIT_TAG v4
+    GIT_TAG v3
 )
 
 FetchContent_Declare(
