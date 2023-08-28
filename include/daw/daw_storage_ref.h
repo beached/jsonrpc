@@ -18,7 +18,7 @@ namespace daw {
 		}
 
 		T &&operator( )( storage_t &&storage ) const {
-			return DAW_MOVE( *std::launder( reinterpret_cast<T *>( &storage ) ) );
+			return std::move( *std::launder( reinterpret_cast<T *>( &storage ) ) );
 		}
 
 		T const &operator( )( storage_t const &storage ) const {
@@ -26,7 +26,7 @@ namespace daw {
 		}
 
 		T const &&operator( )( storage_t const &&storage ) const {
-			return DAW_MOVE(
+			return std::move(
 			  *std::launder( reinterpret_cast<T const *>( &storage ) ) );
 		}
 	};

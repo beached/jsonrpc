@@ -9,8 +9,8 @@
 #include "json_rpc_common.h"
 #include "json_rpc_params.h"
 
-#include <daw/daw_move.h>
 #include <daw/json/daw_json_link_types.h>
+#include <daw/daw_move.h>
 
 #include <optional>
 #include <string>
@@ -41,8 +41,8 @@ namespace daw::json_rpc::details {
 		  daw::string_view Method, std::tuple<Ts...> args,
 		  std::optional<std::variant<double, std::string>> Id = { } )
 		  : method( static_cast<std::string>( Method ) )
-		  , params{ DAW_MOVE( args ) }
-		  , id( DAW_MOVE( Id ) ) {}
+		  , params{ std::move( args ) }
+		  , id( std::move( Id ) ) {}
 
 		/// Constructor used by serialization library
 		json_rpc_client_request(
@@ -51,8 +51,8 @@ namespace daw::json_rpc::details {
 		  std::optional<std::variant<double, std::string>> Id )
 		  : jsonrpc( jsonRpc )
 		  , method( static_cast<std::string>( Method ) )
-		  , params( DAW_MOVE( Params ) )
-		  , id( DAW_MOVE( Id ) ) {}
+		  , params( std::move( Params ) )
+		  , id( std::move( Id ) ) {}
 	};
 	template<typename... Ts>
 	json_rpc_client_request( daw::string_view, std::tuple<Ts...>,

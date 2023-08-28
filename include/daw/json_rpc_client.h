@@ -25,7 +25,7 @@ namespace daw::json_rpc {
 		};
 
 		template<std::size_t N>
-		struct client_type_map<char const[N]> {
+		struct client_type_map<char const [N]> {
 			using type = std::string;
 		};
 

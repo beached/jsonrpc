@@ -40,7 +40,7 @@ namespace daw::json_rpc {
 	void json_rpc_dispatch::add_method( std::string name,
 	                                    json_rpc::callback_type &&callback ) {
 		get_ref( m_storage )
-		  .handlers.insert_or_assign( DAW_MOVE( name ), DAW_MOVE( callback ) );
+		  .handlers.insert_or_assign( std::move( name ), std::move( callback ) );
 	}
 
 	json_rpc_dispatch::json_rpc_dispatch( ) {
@@ -52,7 +52,7 @@ namespace daw::json_rpc {
 	json_rpc_dispatch::json_rpc_dispatch( json_rpc_dispatch &&other ) noexcept(
 	  false ) {
 		daw::construct_at<impl_t>( &m_storage,
-		                           get_ref( DAW_MOVE( other.m_storage ) ) );
+		                           get_ref( std::move( other.m_storage ) ) );
 	}
 
 	json_rpc_dispatch::json_rpc_dispatch(
@@ -62,7 +62,7 @@ namespace daw::json_rpc {
 
 	json_rpc_dispatch &
 	json_rpc_dispatch::operator=( json_rpc_dispatch &&other ) noexcept( false ) {
-		get_ref( m_storage ) = get_ref( DAW_MOVE( other.m_storage ) );
+		get_ref( m_storage ) = get_ref( std::move( other.m_storage ) );
 		return *this;
 	}
 

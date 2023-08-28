@@ -15,9 +15,9 @@
 
 #include <daw/daw_construct_at.h>
 #include <daw/daw_memory_mapped_file.h>
-#include <daw/daw_move.h>
 #include <daw/daw_string_view.h>
 #include <daw/json/daw_json_link.h>
+#include <daw/daw_move.h>
 
 #include <algorithm>
 #include <crow.h>
@@ -54,7 +54,7 @@ namespace daw::json_rpc {
 
 		server.route_dynamic( static_cast<std::string>( req_path ) )
 		  .methods( operator""_method( method.data( ), method.size( ) ) )(
-		    DAW_MOVE( handler ) );
+		    std::move( handler ) );
 		return *this;
 	}
 
@@ -133,7 +133,8 @@ namespace daw::json_rpc {
 				  if( not is_base_of( fs_base, fs_path ) ) {
 					  res = crow::response( 404 );
 				  } else if( is_regular_file( fs_path ) ) {
-					  res.set_static_file_info_unsafe( static_cast<std::string>( fs_path ) );
+					  res.set_static_file_info_unsafe(
+					    static_cast<std::string>( fs_path ) );
 					  auto mmf = daw::filesystem::memory_mapped_file_t(
 					    static_cast<std::string>( fs_path ) );
 					  res.body = std::string( std::data( mmf ), daw::data_end( mmf ) );

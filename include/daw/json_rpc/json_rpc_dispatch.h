@@ -10,8 +10,8 @@
 #include "daw/json_rpc/json_rpc_request_handler.h"
 #include "daw/json_rpc/json_rpc_server_request.h"
 
-#include <daw/daw_move.h>
 #include <daw/json/daw_json_link.h>
+#include <daw/daw_move.h>
 
 #include <string>
 #include <string_view>
@@ -60,16 +60,16 @@ namespace daw::json_rpc {
 
 			using handler_t = daw::remove_cvref_t<Handler>;
 			if constexpr( is_request_handler_v<handler_t> ) {
-				add_method( DAW_MOVE( name ), DAW_FWD( handler ).callback( ) );
+				add_method( std::move( name ), DAW_FWD( handler ).callback( ) );
 			} else if constexpr( std::is_same_v<Sig, deduce_signature> ) {
 				using func_t = daw::func::function_traits<handler_t>;
 				using make_handler_t = impl::make_handler<typename func_t::result_t,
 				                                          typename func_t::params_t>;
 				using req_handler_t = typename make_handler_t::handler;
-				add_method( DAW_MOVE( name ),
+				add_method( std::move( name ),
 				            req_handler_t( DAW_FWD( handler ) ).callback( ) );
 			} else /* explicitly specified signature */ {
-				add_method( DAW_MOVE( name ),
+				add_method( std::move( name ),
 				            request_handler<Sig>( DAW_FWD( handler ) ).callback( ) );
 			}
 			return *this;

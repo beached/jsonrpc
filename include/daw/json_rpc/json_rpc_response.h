@@ -28,27 +28,27 @@ namespace daw::json_rpc {
 
 		explicit Error( int Code, std::string Message )
 		  : code( Code )
-		  , message( DAW_MOVE( Message ) ) {}
+		  , message( std::move( Message ) ) {}
 
 		explicit Error( int Code, std::string Message, Data const &d )
 		  : code( Code )
-		  , message( DAW_MOVE( Message ) )
+		  , message( std::move( Message ) )
 		  , data( d ) {}
 
 		explicit Error( int Code, std::string Message, Data &&d )
 		  : code( Code )
-		  , message( DAW_MOVE( Message ) )
-		  , data( DAW_MOVE( d ) ) {}
+		  , message( std::move( Message ) )
+		  , data( std::move( d ) ) {}
 
 		explicit Error( int &&Code, std::optional<std::string> &&Message,
 		                std::optional<Data> &&d )
 		  : code( Code )
-		  , message( DAW_MOVE( Message ) )
-		  , data( DAW_MOVE( d ) ) {}
+		  , message( std::move( Message ) )
+		  , data( std::move( d ) ) {}
 	};
 
-	Error( int ) -> Error<daw::json::json_value>;
-	Error( int, std::string ) -> Error<daw::json::json_value>;
+	Error( int )->Error<daw::json::json_value>;
+	Error( int, std::string )->Error<daw::json::json_value>;
 
 	template<typename Data>
 	Error( int, std::string, Data ) -> Error<Data>;
@@ -63,14 +63,14 @@ namespace daw::json_rpc {
 
 		explicit json_rpc_response_error( Error<Data> err,
 		                                  details::id_type Id = { } )
-		  : error( DAW_MOVE( err ) )
-		  , id( DAW_MOVE( Id ) ) {}
+		  : error( std::move( err ) )
+		  , id( std::move( Id ) ) {}
 
 		explicit json_rpc_response_error( std::string &&JsonRPC, Error<Data> &&err,
 		                                  details::id_type &&Id )
-		  : jsonrpc( DAW_MOVE( JsonRPC ) )
-		  , error( DAW_MOVE( err ) )
-		  , id( DAW_MOVE( Id ) ) {}
+		  : jsonrpc( std::move( JsonRPC ) )
+		  , error( std::move( err ) )
+		  , id( std::move( Id ) ) {}
 	};
 
 	template<typename Data>
@@ -125,12 +125,12 @@ namespace daw::json_rpc {
 		                                      std::nullptr_t> = nullptr>
 		inline json_rpc_response_result( R &&result, details::id_type Id )
 		  : result( DAW_FWD( result ) )
-		  , id( DAW_MOVE( Id ) ) {}
+		  , id( std::move( Id ) ) {}
 
 		inline json_rpc_response_result( daw::string_view /*rpc_ver*/, Result &&r,
 		                                 details::id_type &&Id )
-		  : result( DAW_MOVE( r ) )
-		  , id( DAW_MOVE( Id ) ) {}
+		  : result( std::move( r ) )
+		  , id( std::move( Id ) ) {}
 	};
 
 	template<typename Result>
@@ -189,10 +189,10 @@ namespace daw::json_rpc {
 
 	public:
 		explicit inline json_rpc_response( json_rpc_response_error<ErrorData> err )
-		  : m_response( DAW_MOVE( err ) ) {}
+		  : m_response( std::move( err ) ) {}
 
 		explicit inline json_rpc_response( json_rpc_response_result<T> result )
-		  : m_response( DAW_MOVE( result ) ) {}
+		  : m_response( std::move( result ) ) {}
 
 		[[nodiscard]] inline bool has_error( ) const {
 			return m_response.index( ) == 1;
@@ -233,7 +233,7 @@ namespace daw::json_rpc {
 
 		[[nodiscard]] inline json_rpc_response_result<T> &&response( ) && {
 			return daw::visit_nt(
-			  DAW_MOVE( m_response ),
+			  std::move( m_response ),
 			  []( auto &&v ) -> json_rpc_response_result<T> && {
 				  if constexpr( daw::json_rpc::json_rpc_response_details::
 				                  i_am_a_json_rpc_response_error_v<decltype( v )> ) {
@@ -247,7 +247,7 @@ namespace daw::json_rpc {
 		[[nodiscard]] inline json_rpc_response_result<T> const &&
 		response( ) const && {
 			return daw::visit_nt(
-			  DAW_MOVE( m_response ),
+			  std::move( m_response ),
 			  []( auto &&v ) -> json_rpc_response_result<T> const && {
 				  if constexpr( daw::json_rpc::json_rpc_response_details::
 				                  i_am_a_json_rpc_response_error_v<decltype( v )> ) {
@@ -286,7 +286,7 @@ namespace daw::json_rpc {
 
 		[[nodiscard]] inline json_rpc_response_error<ErrorData> &&error( ) && {
 			return daw::visit_nt(
-			  DAW_MOVE( m_response ),
+			  std::move( m_response ),
 			  []( auto &&v ) -> json_rpc_response_error<ErrorData> && {
 				  if constexpr( daw::json_rpc::json_rpc_response_details::
 				                  i_am_a_json_rpc_response_error_v<decltype( v )> ) {
@@ -300,7 +300,7 @@ namespace daw::json_rpc {
 		[[nodiscard]] inline json_rpc_response_error<ErrorData> const &&
 		error( ) const && {
 			return daw::visit_nt(
-			  DAW_MOVE( m_response ),
+			  std::move( m_response ),
 			  []( auto &&v ) -> json_rpc_response_error<ErrorData> const && {
 				  if constexpr( daw::json_rpc::json_rpc_response_details::
 				                  i_am_a_json_rpc_response_error_v<decltype( v )> ) {

@@ -11,8 +11,8 @@
 #include "json_rpc/json_rpc_dispatch.h"
 
 #include <daw/daw_concepts.h>
-#include <daw/daw_move.h>
 #include <daw/daw_string_view.h>
+#include <daw/daw_move.h>
 
 #include <crow.h>
 #include <crow/middlewares/cookie_parser.h>
@@ -93,19 +93,19 @@ namespace daw::json_rpc {
 			auto &ws = server.route_dynamic( static_cast<std::string>( req_path ) )
 			             .websocket( );
 			if( opts.on_accept ) {
-				ws.onaccept( DAW_MOVE( opts.on_accept ) );
+				ws.onaccept( std::move( opts.on_accept ) );
 			}
 			if( opts.on_close ) {
-				ws.onclose( DAW_MOVE( opts.on_close ) );
+				ws.onclose( std::move( opts.on_close ) );
 			}
 			if( opts.on_error ) {
-				ws.onerror( DAW_MOVE( opts.on_error ) );
+				ws.onerror( std::move( opts.on_error ) );
 			}
 			if( opts.on_message ) {
-				ws.onmessage( DAW_MOVE( opts.on_message ) );
+				ws.onmessage( std::move( opts.on_message ) );
 			}
 			if( opts.on_open ) {
-				ws.onclose( DAW_MOVE( opts.on_close ) );
+				ws.onclose( std::move( opts.on_close ) );
 			}
 			return *this;
 		}
