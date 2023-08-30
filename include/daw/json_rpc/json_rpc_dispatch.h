@@ -37,9 +37,9 @@ namespace daw::json_rpc {
 
 		void add_method( std::string, json_rpc::callback_type && );
 
+	public:
 		struct deduce_signature;
 
-	public:
 		explicit json_rpc_dispatch( );
 		json_rpc_dispatch( json_rpc_dispatch &&other ) noexcept( false );
 		json_rpc_dispatch( json_rpc_dispatch const &other ) noexcept( false );
